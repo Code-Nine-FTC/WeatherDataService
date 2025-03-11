@@ -2,7 +2,7 @@
 This file contains the README documentation for the recommendation-service project.
 -->
 
-Para rodar o serviço `WealtherDataService`, siga as instruções abaixo:
+Para rodar o serviço `devops-testes`, siga as instruções abaixo:
 
 1. **Criar o ambiente virtual**:
     ```bash
@@ -25,7 +25,7 @@ Para rodar o serviço `WealtherDataService`, siga as instruções abaixo:
     ```
     Obs: Caso o projeto não reconheça as dependências instaladas, confira o interpretador Python:
     ```bash
-    Ctrl + P e depois > Python: Select Interpreter
+    Ctrl + P e depois `> Python: Select Interpreter`
     ```
 
 4. **Configurar o VSCode**:
@@ -55,12 +55,11 @@ Para rodar o serviço `WealtherDataService`, siga as instruções abaixo:
                 "request": "launch",
                 "module": "uvicorn",
                 "args": [
-                    "app.main:app",
+                    "main:app",
                     "--host",
                     "127.0.0.1",
                     "--port",
-                    "5060",
-                    "--reload"
+                    "5050",
                 ],
                 "env": {
                     "PYTHONPYCACHEPREFIX": "${workspaceFolder}/.pycache_global"
@@ -70,7 +69,6 @@ Para rodar o serviço `WealtherDataService`, siga as instruções abaixo:
         ]
     }
     ```
-
 5. **Iniciar o submódulo**:
         - Para inicializar o submódulo, execute o comando:
         ```bash
@@ -139,7 +137,7 @@ Para rodar o serviço `WealtherDataService`, siga as instruções abaixo:
     from alembic import context
     from sqlalchemy.ext.asyncio import create_async_engine
     from sqlalchemy.ext.asyncio import AsyncConnection
-    from app.core.models.config.settings import settings
+    from app.config.settings import settings
     from app.core.models.db_model import Base
     import asyncio
 
@@ -225,10 +223,11 @@ Para rodar o serviço `WealtherDataService`, siga as instruções abaixo:
 9. **Rodar a aplicação**:
     - Para rodar a aplicação:
     ```bash
-    python -m app.main
+    python -m main
     ```
     ou
     ```bash
-    uvicorn app.main:app --reload --port 5000
+    uvicorn main:app --reload --port 5000
     ```
     - Para rodar com o modo debugger, basta apertar `F5` no VSCode.
+
