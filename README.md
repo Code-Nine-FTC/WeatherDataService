@@ -25,7 +25,7 @@ Para rodar o serviço `devops-testes`, siga as instruções abaixo:
     ```
     Obs: Caso o projeto não reconheça as dependências instaladas, confira o interpretador Python:
     ```bash
-    Ctrl + P e depois `> Python: Select Interpreter`
+    Ctrl + P e depois `> Python: Select Interpreter 3.12.5`
     ```
 
 4. **Configurar o VSCode**:
