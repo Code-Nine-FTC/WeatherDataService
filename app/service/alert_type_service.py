@@ -13,14 +13,10 @@ class AlertTypeService:
         self._session = session
 
     async def create_alert_type(self, alert_type_date: AlertTypeCreate) -> None:
-        try:
-            # precisa verificar se o tipo de alerta já existe e o parameto_id
-            new_alert_type = TypeAlert(**alert_type_date.model_dump())
-            self._session.add(new_alert_type)
-            await self._session.commit()
-        except Exception as e:
-            await self._session.rollback()
-            raise e
+        # precisa verificar se o tipo de alerta já existe e o parameto_id
+        new_alert_type = TypeAlert(**alert_type_date.model_dump())
+        self._session.add(new_alert_type)
+        await self._session.commit()
 
     async def _exemple(self) -> None:
         query_result = await self._session.execute(text("SELECT 1 "))
