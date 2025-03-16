@@ -18,8 +18,12 @@ class AlertTypeController:
         try:
             await self._service.create_alert_type(alert_type_data)
             return BasicResponse[None](data=None)
+        except HTTPException as http_ex:
+            await self._session.rollback()
+            raise http_ex
         except Exception as e:
             await self._session.rollback()
+            print(f"Erro ao criar tipo de alerta: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erro interno no servidor, tente novamente mais tarde.",
