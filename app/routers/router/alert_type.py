@@ -15,9 +15,9 @@ router = APIRouter(tags=["Tipos de alerta"], prefix="/alert_type")
 #     return {"msg": "Hello World"}
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED)
+@router.post("/create")
 async def create_alert_type(
     alert_type_data: AlertTypeCreate,
-    session: AsyncSession = Depends(SessionConnection),
+    session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[AlertTypeResponse]:
     return await AlertTypeController(session).create_alert_type(alert_type_data)

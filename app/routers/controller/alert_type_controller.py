@@ -16,16 +16,15 @@ class AlertTypeController:
         self, alert_type_data: AlertTypeCreate
     ) -> BasicResponse[AlertTypeResponse]:
         try:
-            result = await self._service.create_alert_type(alert_type_data)
-            if result is None:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="""Não foi possível criar o tipo de alerta,
-                    verifique os dados informados.""",
-                )
-            return BasicResponse[AlertTypeResponse](data=result)
+            await self._service.create_alert_type(alert_type_data)
+            # if result is None:
+            #     raise HTTPException(
+            #         status_code=status.HTTP_400_BAD_REQUEST,
+            #         detail="""Não foi possível criar o tipo de alerta,
+            #         verifique os dados informados.""",
+            #     )
+            return BasicResponse[AlertTypeResponse](data=None)
         except Exception as e:
-            print("Erro interno no servidor, tente novamente mais tarde.", e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erro interno no servidor, tente novamente mais tarde.",
