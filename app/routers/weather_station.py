@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.dependency.database import SessionConnection
 from app.routers.controller.weather_station import WeatherStationController
-from app.schemas.weather_station import WeatherStationCreate, WeatherStationUpdate
+from app.schemas.weather_station import WeatherStationCreate
 
 router = APIRouter(tags=["Weather Stations"], prefix="/stations")
 
-@router.post("", status_code=201)
+
+@router.post("/")
 async def create_station(
     data: WeatherStationCreate = Body(...),
     session: AsyncSession = Depends(SessionConnection.session),
-    #current_user: dict = Depends(get_current_user)
-):
-    return await WeatherStationController(session).create_station(
-        data.model_dump(),
-        #current_user.id
-    )
-
+) -> None:
+    return await WeatherStationController(session, 1).create_station(data, 1)

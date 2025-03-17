@@ -5,13 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.lifespan import lifespan
 from app.routers.router import define_routes
-from app.dependency.database import init_models
 
-from app.dependency.database import init_models
-from app.core.models.db_model import User
-from app.core.models.db_model import Parameter
-from app.core.models.db_model import WeatherStation
-from app.core.models.db_model import Alert
 
 def get_application() -> FastAPI:
     app_ = FastAPI(
@@ -28,7 +22,6 @@ def get_application() -> FastAPI:
 
     return app_
 
-init_models()
 
 app = get_application()
 
