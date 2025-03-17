@@ -9,6 +9,7 @@ from app.schemas.alert_type_schema import AlertTypeCreate
 
 router = APIRouter(tags=["Tipos de alerta"], prefix="/alert_type")
 
+
 @router.post("/create")
 async def create_alert_type(
     alert_type_data: AlertTypeCreate,
