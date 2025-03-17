@@ -1,37 +1,44 @@
 # -*- coding: utf-8 -*-
+
 from typing import AsyncGenerator
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import registry
+from sqlalchemy.ext.asyncio.engine import AsyncEngine
 
 from app.config.settings import Settings
 from app.modules.common import Singleton
 
-mapper_registry = registry()
-
 
 class Database(metaclass=Singleton):
     def __init__(self) -> None:
-        self._engine = create_async_engine(
-            Settings().DATABASE_URL, echo=False, future=True
-        )
-        self.session_factory = async_sessionmaker(
-            bind=self._engine, expire_on_commit=False, class_=AsyncSession
+        self._engine: AsyncEngine = self._create_engine()  # type: ignore[assignment]
+        self._session_maker: async_sessionmaker[AsyncSession] = (
+            self._create_session_factory()
         )
 
     async def ping(self) -> None:
-        async with self.session_factory() as session:
+        async with self.session as session:
             await session.execute(text("SELECT 1;"))
 
-    @staticmethod
-    async def _create_engine() -> AsyncEngine:
-        return create_async_engine(Settings().DATABASE_URL, echo=False, future=True)
+    @property
+    def session(self) -> AsyncSession:
+        return self._session_maker()  # type: ignore[no-any-return,operator, unused-ignore] # noqa
+
+    def _create_engine(self) -> async_sessionmaker[AsyncSession]:  # noqa: PLR6301
+        return create_async_engine(Settings().DATABASE_URL)  # type: ignore[return-value, call-arg]
+
+    def _create_session_factory(self) -> async_sessionmaker[AsyncSession]:
+        return async_sessionmaker(
+            bind=self._engine,
+            expire_on_commit=False,
+            autoflush=False,
+            autocommit=False,
+        )
 
     async def close(self) -> None:
         await self._engine.dispose()
@@ -40,6 +47,5 @@ class Database(metaclass=Singleton):
 class SessionConnection:
     @staticmethod
     async def session() -> AsyncGenerator[AsyncSession, None]:
-        db = Database()
-        async with db.session_factory() as session:
+        async with Database().session as session:
             yield session

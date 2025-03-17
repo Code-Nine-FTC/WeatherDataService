@@ -15,8 +15,7 @@ class WeatherStationController:
         self, data: WeatherStationCreate, user_id: int
     ) -> None:
         try:
-            async with self._session.begin():
-                await self._service.create_station(data)
+            await self._service.create_station(data)
         except HTTPException as e:
             raise e
         except Exception as e:
