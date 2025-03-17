@@ -10,7 +10,7 @@ from app.schemas.alert_type_schema import AlertTypeCreate
 router = APIRouter(tags=["Tipos de alerta"], prefix="/alert_type")
 
 
-@router.post("/create")
+@router.post("/")
 async def create_alert_type(
     alert_type_data: AlertTypeCreate,
     session: AsyncSession = Depends(SessionConnection.session),
