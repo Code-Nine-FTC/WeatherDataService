@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from fastapi import FastAPI
 
-from app.routers.exemple import router
+from app.routers.weather_station import router
 
 
 def define_routes(app: FastAPI) -> None:
