@@ -11,3 +11,4 @@ alembic
 .pytest_cache
 alembic.ini
 .mypy_cache
+.env

@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 
 from app.routers.router.alert_type import router as router_alert_type
-from app.routers.router.exemple import router
+from app.routers.router.weather_station import router
 
 
 def define_routes(app: FastAPI) -> None:
