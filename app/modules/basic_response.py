@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from typing import Generic, TypeVar
+from typing import Any, Generic, Iterable, TypeVar
 
 from pydantic import BaseModel
 
-T = TypeVar("T", bound=BaseModel)
+T = TypeVar("T", bound=BaseModel | None | Iterable[Any])
 
 
 class BasicResponse(BaseModel, Generic[T]):

@@ -1,6 +1,7 @@
 .venv
 .pycache_global
 .vscode
+.env
 __pycache__
 *.pyc
 venv
