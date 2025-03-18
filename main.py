@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.lifespan import lifespan
-from app.routers.router import define_routes
+from app.routers.define_routes import define_routes
 
 
 def get_application() -> FastAPI:
