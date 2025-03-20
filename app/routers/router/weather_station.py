@@ -8,10 +8,18 @@ from app.schemas.weather_station import WeatherStationCreate
 
 router = APIRouter(tags=["Weather Stations"], prefix="/stations")
 
-
 @router.post("/")
 async def create_station(
     data: WeatherStationCreate = Body(...),
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> None:
     return await WeatherStationController(session, 1).create_station(data, 1)
+
+@router.patch("/{station_id}")
+async def update_station(
+    station_id: int,
+    data: WeatherStationCreate = Body(...),
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> dict:
+    await WeatherStationController(session, 1).update_station(station_id, data)
+    return {"detail": "Estação atualizada com sucesso"}
