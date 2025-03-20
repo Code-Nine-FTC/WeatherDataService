@@ -25,3 +25,12 @@ async def update_station(
 ) -> dict[str, str]:
     await WeatherStationController(session, 1).update_station(station_id, data)
     return {"detail": "Estação atualizada com sucesso"}
+
+
+@router.put("/disable/{station_id}")
+async def disable_station(
+    station_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> dict[str, str]:
+    await WeatherStationController(session, 1).disable_station(station_id)
+    return {"detail": "Estação desativada com sucesso"}

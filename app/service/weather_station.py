@@ -58,3 +58,20 @@ class WeatherStationService:
             setattr(station, key, value)
 
         await self._session.commit()
+
+    async def disable_station(self, station_id: int, user_id: int) -> None:
+        result = await self._session.execute(
+            select(WeatherStation).where(WeatherStation.id == station_id)
+        )
+        station = result.scalar()
+        if not station:
+            raise HTTPException(status_code=404, detail="Estação não encontrada")
+
+        if user_id != self.user:
+            raise HTTPException(
+                status_code=403,
+                detail="Usuário não tem permissão para editar esta estação",
+            )
+
+        station.is_active = False
+        await self._session.commit()

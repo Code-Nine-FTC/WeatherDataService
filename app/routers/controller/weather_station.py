@@ -44,3 +44,24 @@ class WeatherStationController:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Erro interno: {str(e)}",
             )
+
+    async def disable_station(self, station_id: int) -> None:
+        try:
+            await self._service.disable_station(station_id, 1)
+        except HTTPException as e:
+            if e.status_code in {400, 403, 404}:
+                raise e
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno: {str(e)}",
+            )
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Parâmetros inválidos: {str(e)}",
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno: {str(e)}",
+            )
