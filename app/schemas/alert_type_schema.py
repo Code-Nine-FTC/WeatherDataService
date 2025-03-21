@@ -8,7 +8,7 @@ class AlertTypeCreate(BaseModel):
     name: str
     value: int
     math_signal: str
-    status: str | None
+    status: str | None = None
 
 class AlertTypeUpdate(BaseModel):
     name: Optional[str]
@@ -18,7 +18,7 @@ class AlertTypeUpdate(BaseModel):
     
 class AlertTypeResponse(BaseModel):
     id: int
-    parameter_id: int | None
+    parameter_id: int | None = None
     name: str
     value: int
     math_signal: str
