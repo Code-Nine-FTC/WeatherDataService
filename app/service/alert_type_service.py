@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import Parameter, TypeAlert
-from app.schemas.alert_type_schema import AlertTypeCreate
+from app.schemas.alert_type_schema import AlertTypeCreate, AlertTypeUpdate, AlertTypeResponse
 
 
 class AlertTypeService:
@@ -21,6 +21,33 @@ class AlertTypeService:
         await self._search_alert_type(new_alert_type)
 
         self._session.add(new_alert_type)
+        await self._session.commit()
+
+    async def list_alert_types(self) -> list[AlertTypeResponse]:
+        query = select(TypeAlert)
+        query_result = await self._session.execute(query)
+        return query_result.scalars().all()
+    
+    async def get_alert_type(self, alert_type_id: int) -> TypeAlert:
+        alert_type = await self._session.get(TypeAlert, alert_type_id)
+        if alert_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
+            )
+        return alert_type
+    
+    async def update_alert_type(self, alert_type_id: int, alert_type_data: AlertTypeUpdate) -> None:
+        alert_type = await self._session.get(TypeAlert, alert_type_id)
+        if alert_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
+            )
+        
+        data = alert_type_data.model_dump(exclude_unset=True)
+        for key, value in data.items():
+            setattr(alert_type, key, value)
         await self._session.commit()
 
     async def _search_alert_type(self, new_alert_type: TypeAlert) -> None:
@@ -45,3 +72,13 @@ class AlertTypeService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Parâmetro com a ID {parameter_id} não encontrado.",
             )
+    
+    async def delete_alert_type(self, alert_type_id: int) -> None:
+        alert_type = await self._session.get(TypeAlert, alert_type_id)
+        if alert_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
+            )
+        await self._session.delete(alert_type)
+        await self._session.commit()
