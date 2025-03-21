@@ -23,10 +23,10 @@ class AlertTypeService:
         self._session.add(new_alert_type)
         await self._session.commit()
 
-    async def list_alert_types(self) -> list[AlertTypeResponse]:
+    async def list_alert_types(self) -> list[TypeAlert]:
         query = select(TypeAlert)
         query_result = await self._session.execute(query)
-        return query_result.scalars().all()
+        return list(query_result.scalars().all())
     
     async def get_alert_type(self, alert_type_id: int) -> TypeAlert:
         alert_type = await self._session.get(TypeAlert, alert_type_id)
