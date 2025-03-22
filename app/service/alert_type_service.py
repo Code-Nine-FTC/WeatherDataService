@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,8 +48,22 @@ class AlertTypeService:
         
         data = alert_type_data.model_dump(exclude_unset=True)
         for key, value in data.items():
+            if key == "parameter_id":
+                await self._search_parameter_id(value)
             setattr(alert_type, key, value)
+        alert_type.last_update = datetime.now()
         await self._session.commit()
+
+    async def delete_alert_type(self, alert_type_id: int) -> None:
+        alert_type = await self._session.get(TypeAlert, alert_type_id)
+        if alert_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
+            )
+        await self._session.delete(alert_type)
+        await self._session.commit()
+
 
     async def _search_alert_type(self, new_alert_type: TypeAlert) -> None:
         query = select(TypeAlert).where(
@@ -72,13 +87,3 @@ class AlertTypeService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Parâmetro com a ID {parameter_id} não encontrado.",
             )
-    
-    async def delete_alert_type(self, alert_type_id: int) -> None:
-        alert_type = await self._session.get(TypeAlert, alert_type_id)
-        if alert_type is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
-            )
-        await self._session.delete(alert_type)
-        await self._session.commit()

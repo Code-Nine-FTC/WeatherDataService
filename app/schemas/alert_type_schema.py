@@ -11,10 +11,12 @@ class AlertTypeCreate(BaseModel):
     status: str | None = None
 
 class AlertTypeUpdate(BaseModel):
-    name: Optional[str]
-    value: Optional[int]
-    math_signal: Optional[str]
-    status: Optional[str]
+    parameter_id: Optional[int] = None
+    name: Optional[str] = None
+    value: Optional[int] = None
+    math_signal: Optional[str] = None   
+    status: Optional[str] = None
+    is_active: Optional[bool] = None
     
 class AlertTypeResponse(BaseModel):
     id: int
