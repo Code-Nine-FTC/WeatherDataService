@@ -61,7 +61,7 @@ class AlertTypeService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
             )
-        await self._session.delete(alert_type)
+        alert_type.is_active = False
         await self._session.commit()
 
 
