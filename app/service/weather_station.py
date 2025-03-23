@@ -1,25 +1,17 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime
 
-from fastapi import HTTPException
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models.db_model import User, WeatherStation
+from ..core.models.db_model import WeatherStation
 from ..schemas.weather_station import WeatherStationCreate
 
 
 class WeatherStationService:
-    def __init__(self, session: AsyncSession, user_id: int):
+    def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self.user = user_id
 
     async def create_station(self, data: WeatherStationCreate) -> None:
-        result = await self._session.execute(
-            select(User).where(User.id == self.user)
-        )
-        if not result.scalar():
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
         station_data = data.model_dump()
 
         if "create_date" in station_data:

@@ -7,13 +7,11 @@ from app.service.weather_station import WeatherStationService
 
 
 class WeatherStationController:
-    def __init__(self, session: AsyncSession, user_id: int) -> None:
+    def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self._service = WeatherStationService(session, user_id)
+        self._service = WeatherStationService(session)
 
-    async def create_station(
-        self, data: WeatherStationCreate, user_id: int
-    ) -> None:
+    async def create_station(self, data: WeatherStationCreate) -> None:
         try:
             await self._service.create_station(data)
         except HTTPException as e:
