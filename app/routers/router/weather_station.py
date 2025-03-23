@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.auth import AuthManager
 from app.dependency.database import SessionConnection
+from app.modules.basic_response import BasicResponse
 from app.routers.controller.weather_station import WeatherStationController
 from app.schemas.weather_station import WeatherStationCreate
-from app.modules.basic_response import BasicResponse
 
 router = APIRouter(
     tags=["Weather Stations"],
