@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.weather_station import WeatherStationCreate
 from app.service.weather_station import WeatherStationService
+from app.modules.basic_response import BasicResponse
 
 
 class WeatherStationController:
@@ -11,9 +12,10 @@ class WeatherStationController:
         self._session = session
         self._service = WeatherStationService(session)
 
-    async def create_station(self, data: WeatherStationCreate) -> None:
+    async def create_station(self, data: WeatherStationCreate) -> BasicResponse[None]:
         try:
             await self._service.create_station(data)
+            return BasicResponse[None](data=None)
         except HTTPException as e:
             raise e
         except Exception as e:

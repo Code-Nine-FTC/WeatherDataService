@@ -6,6 +6,7 @@ from app.dependency.auth import AuthManager
 from app.dependency.database import SessionConnection
 from app.routers.controller.weather_station import WeatherStationController
 from app.schemas.weather_station import WeatherStationCreate
+from app.modules.basic_response import BasicResponse
 
 router = APIRouter(
     tags=["Weather Stations"],
@@ -18,5 +19,5 @@ router = APIRouter(
 async def create_station(
     session: AsyncSession = Depends(SessionConnection.session),
     data: WeatherStationCreate = Body(...),
-) -> None:
+) -> BasicResponse[None]:
     return await WeatherStationController(session).create_station(data)
