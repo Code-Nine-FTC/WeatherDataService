@@ -14,7 +14,6 @@ router = APIRouter(
     dependencies=[Depends(AuthManager.has_authorization)],
 )
 
-
 @router.post("/")
 async def create_station(
     session: AsyncSession = Depends(SessionConnection.session),

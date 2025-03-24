@@ -11,10 +11,10 @@ from app.core.models.db_model import TypeAlert
 
 router = APIRouter(
     tags=["Tipos de alerta"],
-    prefix="/alert_type",
-    dependencies=[Depends(AuthManager.has_authorization)],
+    prefix="/alert_type"
 )
 
+dependencies=[Depends(AuthManager.has_authorization)],
 @router.post("/")
 async def create_alert_type(
     alert_type_data: AlertTypeCreate,
@@ -30,12 +30,14 @@ async def list_alert_types(session: AsyncSession = Depends(SessionConnection.ses
 async def get_alert_type(alert_type_id: int, session: AsyncSession = Depends(SessionConnection.session)) -> BasicResponse[AlertTypeResponse]:
     return await AlertTypeController(session).get_alert_type(alert_type_id)
 
+dependencies=[Depends(AuthManager.has_authorization)],
 @router.patch("/{alert_type_id}")
 async def update_alert_type(
     alert_type_id: int, alert_type_data: AlertTypeUpdate, session: AsyncSession = Depends(SessionConnection.session)
 ) -> BasicResponse[None]:
     return await AlertTypeController(session).update_alert_type(alert_type_id, alert_type_data)
 
-@router.delete("/{alert_type_id}")
+dependencies=[Depends(AuthManager.has_authorization)],
+@router.patch("/disables/{alert_type_id}")
 async def delete_alert_type(alert_type_id: int, session: AsyncSession = Depends(SessionConnection.session)) -> BasicResponse[None]:
     return await AlertTypeController(session).delete_alert_type(alert_type_id)

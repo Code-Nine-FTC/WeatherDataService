@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class AlertTypeCreate(BaseModel):
@@ -10,12 +11,13 @@ class AlertTypeCreate(BaseModel):
     status: str | None = None
 
 class AlertTypeUpdate(BaseModel):
-    parameter_id: Optional[int] = None
-    name: Optional[str] = None
-    value: Optional[int] = None
-    math_signal: Optional[str] = None   
-    status: Optional[str] = None
-    is_active: Optional[bool] = None
+    parameter_id: int | None = None
+    name: str | None = None
+    value: int | None = None
+    math_signal: str | None = None   
+    status: str | None = None
+    is_active: bool | None = None
+    last_update: datetime = datetime.now()
     
 class AlertTypeResponse(BaseModel):
     id: int

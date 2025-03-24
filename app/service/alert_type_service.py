@@ -39,7 +39,7 @@ class AlertTypeService:
         return alert_type
     
     async def update_alert_type(self, alert_type_id: int, alert_type_data: AlertTypeUpdate) -> None:
-        alert_type = await self._session.get(TypeAlert, alert_type_id)
+        alert_type = await self.get_alert_type(TypeAlert, alert_type_id)
         if alert_type is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -51,19 +51,18 @@ class AlertTypeService:
             if key == "parameter_id":
                 await self._search_parameter_id(value)
             setattr(alert_type, key, value)
-        alert_type.last_update = datetime.now()
         await self._session.commit()
 
     async def delete_alert_type(self, alert_type_id: int) -> None:
-        alert_type = await self._session.get(TypeAlert, alert_type_id)
+        alert_type = await self.get_alert_type(TypeAlert, alert_type_id)
         if alert_type is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
             )
         alert_type.is_active = False
+        alert_type.last_update = datetime.now()
         await self._session.commit()
-
 
     async def _search_alert_type(self, new_alert_type: TypeAlert) -> None:
         query = select(TypeAlert).where(
