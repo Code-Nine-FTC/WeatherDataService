@@ -1,29 +1,48 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, Depends
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependency.database import SessionConnection
-from app.modules.basic_response import BasicResponse
-from app.routers.controller.alert_list_controller import AlertListController
-from app.schemas.alert_schema import AlertResponse
+from app.modules.auth.auth_manager import AuthManager
+from app.modules.dependency import get_db_session
+from app.schemas.alert_list_schema import AlertResponse, AlertFilterSchema
+from app.schemas.user_view_schema import UserViewResponse
+from app.service.alert_list_service import AlertListService
 
-router = APIRouter(tags=["Alertas"], prefix="/alert")
+router = APIRouter()
 
 
-@router.get("/list")
+@router.get("/alert/list", response_model=List[AlertResponse])
 async def list_alerts(
-    session: AsyncSession = Depends(SessionConnection.session),
-) -> BasicResponse[list[AlertResponse]]:
-    return await AlertListController(session).list_alerts()
+    session: AsyncSession = Depends(get_db_session),
+    user: UserViewResponse = Depends(AuthManager.has_authorization),
+):
+    service = AlertListService(session)
+    try:
+        return await service.get_alerts()
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao buscar alertas.",
+        )
 
 
-@router.get("/filter")
+@router.get("/alert/filter", response_model=List[AlertResponse])
 async def filter_alerts(
-    date_inicial: str | None = None,
-    date_final: str | None = None,
-    station_id: int | None = None,
-    session: AsyncSession = Depends(SessionConnection.session),
-) -> BasicResponse[list[AlertResponse]]:
-    return await AlertListController(session).filter_alerts(
-        date_inicial, date_final, station_id
-    )
+    filters: AlertFilterSchema = Depends(),
+    session: AsyncSession = Depends(get_db_session),
+    user: UserViewResponse = Depends(AuthManager.has_authorization),
+):
+    service = AlertListService(session)
+    try:
+        return await service.get_filtered_alerts(filters)
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao buscar alertas filtrados.",
+        )
