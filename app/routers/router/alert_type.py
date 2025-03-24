@@ -2,13 +2,18 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dependency.auth import AuthManager
 from app.dependency.database import SessionConnection
 from app.modules.basic_response import BasicResponse
 from app.routers.controller.alert_type_controller import AlertTypeController
 from app.schemas.alert_type_schema import AlertTypeCreate, AlertTypeUpdate, AlertTypeResponse
 from app.core.models.db_model import TypeAlert
 
-router = APIRouter(tags=["Tipos de alerta"], prefix="/alert_type")
+router = APIRouter(
+    tags=["Tipos de alerta"],
+    prefix="/alert_type",
+    dependencies=[Depends(AuthManager.has_authorization)],
+)
 
 @router.post("/")
 async def create_alert_type(

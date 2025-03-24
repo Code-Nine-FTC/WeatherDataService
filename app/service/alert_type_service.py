@@ -77,7 +77,7 @@ class AlertTypeService:
         if query_result.fetchone():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Tipo de alerta com mesmo nome, valor e sinal matemático já existe.",
+                detail="Tipo de alerta já cadastrado.",
             )
 
     async def _search_parameter_id(self, parameter_id: int) -> None:
