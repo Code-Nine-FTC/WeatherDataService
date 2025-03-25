@@ -7,8 +7,8 @@ from app.service.user_view_service import UserViewService
 
 
 class UserViewController:
-    def __init__(self, session: AsyncSession) -> None:
-        self._service = UserViewService(session)
+    def __init__(self, session: AsyncSession, user: UserViewResponse) -> None:
+        self._service = UserViewService(session, user)
 
     async def get_user(self, user_id: int) -> UserViewResponse:
         return await self._service.get_user_by_id(user_id)
