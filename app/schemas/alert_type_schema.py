@@ -27,11 +27,9 @@ class AlertTypeResponse(BaseModel):
     math_signal: str
     status: str | None
     is_active: bool
-    create_date: str
-    last_update: str 
+    create_date: int
+    last_update: datetime 
 
     model_config = {
         "from_attributes": True,
     }
-    
-

@@ -27,16 +27,18 @@ class AlertTypeService:
     async def list_alert_types(self) -> list[TypeAlert]:
         query = select(TypeAlert)
         query_result = await self._session.execute(query)
-        return list(query_result.scalars().all())
+        alert_types = query_result.scalars().all()
+        return [AlertTypeResponse.model_validate(alert_type, from_attributes=True) 
+            for alert_type in alert_types]
     
-    async def get_alert_type(self, alert_type_id: int) -> TypeAlert:
+    async def get_alert_type(self, alert_type_id: int) -> AlertTypeResponse:
         alert_type = await self._session.get(TypeAlert, alert_type_id)
         if alert_type is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
             )
-        return alert_type
+        return AlertTypeResponse.model_validate(alert_type, from_attributes=True)
     
     async def update_alert_type(self, alert_type_id: int, alert_type_data: AlertTypeUpdate) -> None:
         alert_type = await self.get_alert_type(TypeAlert, alert_type_id)
@@ -46,6 +48,7 @@ class AlertTypeService:
                 detail=f"Tipo de alerta com a ID {alert_type_id} não encontrado.",
             )
         
+        await self._search_alert_type(alert_type_data)
         data = alert_type_data.model_dump(exclude_unset=True)
         for key, value in data.items():
             if key == "parameter_id":

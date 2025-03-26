@@ -33,21 +33,7 @@ class AlertTypeController:
     async def list_alert_types(self) -> BasicResponse[list[AlertTypeResponse]]:
         try:
             alert_types = await self._service.list_alert_types()
-            response_data = []
-            for alert_type in alert_types:
-                alert_type_dict = {
-                    "id": alert_type.id,
-                    "parameter_id": alert_type.parameter_id,
-                    "name": alert_type.name,
-                    "value": alert_type.value,
-                    "math_signal": alert_type.math_signal,
-                    "status": alert_type.status,
-                    "is_active": alert_type.is_active,
-                    "create_date": str(alert_type.create_date), 
-                    "last_update": str(alert_type.last_update),
-                }
-                response_data.append(AlertTypeResponse.model_validate(alert_type_dict))
-            return BasicResponse[list[AlertTypeResponse]](data=response_data)
+            return BasicResponse[list[AlertTypeResponse]](data=alert_types)
         except Exception as http_ex:
             raise http_ex
         except Exception as e:
@@ -60,19 +46,7 @@ class AlertTypeController:
     async def get_alert_type(self, alert_type_id: int) -> BasicResponse[AlertTypeResponse]:
         try:
             alert_type = await self._service.get_alert_type(alert_type_id)
-            alert_type_dict = {
-                "id": alert_type.id,
-                "parameter_id": alert_type.parameter_id,
-                "name": alert_type.name,
-                "value": alert_type.value,
-                "math_signal": alert_type.math_signal,
-                "status": alert_type.status,
-                "is_active": alert_type.is_active,
-                "create_date": str(alert_type.create_date), 
-                "last_update": str(alert_type.last_update)   
-            }
-            response_data = AlertTypeResponse.model_validate(alert_type_dict)
-            return BasicResponse[AlertTypeResponse](data=response_data)
+            return BasicResponse[AlertTypeResponse](data=alert_type)
         except HTTPException as http_ex:
             raise http_ex
         except Exception as e:
