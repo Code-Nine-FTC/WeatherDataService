@@ -2,35 +2,48 @@
 from fastapi import APIRouter, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dependency.auth import AuthManager
 from app.dependency.database import SessionConnection
+from app.modules.basic_response import BasicResponse
 from app.routers.controller.weather_station import WeatherStationController
-from app.schemas.weather_station import WeatherStationCreate
+from app.schemas.weather_station import WeatherStationCreate, WeatherStationUpdate
+from app.schemas.user import UserResponse
 
-router = APIRouter(tags=["Weather Stations"], prefix="/stations")
+router = APIRouter(
+    tags=["Weather Stations"],
+    prefix="/stations",
+    dependencies=[Depends(AuthManager.has_authorization)],
+)
 
 
 @router.post("/")
 async def create_station(
-    data: WeatherStationCreate = Body(...),
     session: AsyncSession = Depends(SessionConnection.session),
-) -> None:
-    return await WeatherStationController(session, 1).create_station(data, 1)
+    data: WeatherStationCreate = Body(...),
+    current_user: UserResponse = Depends(AuthManager.has_authorization),
+) -> BasicResponse[None]:
+    return await WeatherStationController(session, current_user.id).create_station(data)
+    
 
 
 @router.patch("/{station_id}")
 async def update_station(
     station_id: int,
-    data: WeatherStationCreate = Body(...),
+    data: WeatherStationUpdate = Body(...),
     session: AsyncSession = Depends(SessionConnection.session),
-) -> dict[str, str]:
-    await WeatherStationController(session, 1).update_station(station_id, data)
-    return {"detail": "Estação atualizada com sucesso"}
+    current_user: UserResponse = Depends(AuthManager.has_authorization),
+) -> BasicResponse[None]:
+    return await WeatherStationController(session, current_user.id).update_station(
+        station_id, data
+    )
 
 
-@router.put("/disable/{station_id}")
+@router.patch("/disable/{station_id}")
 async def disable_station(
     station_id: int,
     session: AsyncSession = Depends(SessionConnection.session),
-) -> dict[str, str]:
-    await WeatherStationController(session, 1).disable_station(station_id)
-    return {"detail": "Estação desativada com sucesso"}
+    current_user: UserResponse = Depends(AuthManager.has_authorization),
+) -> BasicResponse[None]:
+    return await WeatherStationController(session, current_user.id).disable_station(
+        station_id
+    )
