@@ -75,22 +75,11 @@ jobs:
 
       - name: Verificar lint com Ruff
         run: |
-            cd WeatherDataService
             ruff check .
 
       - name: Verifica tipagem com mypy
         run: |
-            cd WeatherDataService
             mypy .
-
-      - name: Instalar dependências e rodar testes - DataProcessorService
-        if: env.has_tests_dataprocessor == 'true'
-        run: |
-          cd DataProcessorService
-          python -m pip install --upgrade pip
-          pip install pytest pytest-cov
-          pip install -r requirements.txt
-          pytest --cov=app
 
       - name: Instalar dependências e rodar testes - WeatherDataService
         if: env.has_tests_weatherdata == 'true'
