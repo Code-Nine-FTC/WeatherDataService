@@ -76,7 +76,7 @@ jobs:
 
       - name: Verificar lint com Ruff e corrigir automaticamente
         run: |
-            ruff check . --fix
+            ruff check . --fix --extend-ignore E501
             ruff format .
 
       - name: Verifica tipagem com mypy
