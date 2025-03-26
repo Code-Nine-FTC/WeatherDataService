@@ -76,7 +76,9 @@ jobs:
 
       - name: Verificar lint com Ruff
         run: |
+            ruff format .
             ruff check .
+            ruff check . --fix
 
       - name: Verifica tipagem com mypy
         run: |
