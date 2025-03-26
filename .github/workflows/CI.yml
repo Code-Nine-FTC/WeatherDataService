@@ -78,7 +78,6 @@ jobs:
           cd DataProcessorService
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          ruff format .
           ruff check .
           mypy .
           
@@ -87,7 +86,6 @@ jobs:
           cd WeatherDataService
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          ruff format .
           ruff check .
           mypy .
 
@@ -96,7 +94,6 @@ jobs:
           cd SharedDatabaseService
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          ruff format .
           ruff check .
           mypy .
 
@@ -107,7 +104,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
           pip install -r requirements.txt
-          ruff format .
           ruff check .
           mypy .
           pytest --cov=app
@@ -119,7 +115,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
           pip install -r requirements.txt
-          ruff format .
           ruff check .
           mypy .
           pytest --cov=app
@@ -131,7 +126,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
           pip install -r requirements.txt
-          ruff format .
           ruff check .
           mypy .
           pytest --cov=app
