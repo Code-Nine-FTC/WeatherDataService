@@ -2,15 +2,19 @@
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.alert import RequestAlert
+
 from app.core.models.db_model import Alert
+from app.schemas.alert import RequestAlert
+
 
 class AlertService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
     async def delete_alert(self, id_alert: RequestAlert) -> None:
-        result = await self._session.execute(select(Alert).where(Alert.id == id_alert.id)) 
+        result = await self._session.execute(
+            select(Alert).where(Alert.id == id_alert.id)
+        )
         alert = result.scalars().first()
         if alert is None:
             raise HTTPException(
@@ -19,4 +23,3 @@ class AlertService:
             )
         await self._session.delete(alert)
         await self._session.commit()
-
