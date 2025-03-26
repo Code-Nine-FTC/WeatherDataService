@@ -73,6 +73,33 @@ jobs:
             echo "has_tests_shareddb=false" >> $GITHUB_ENV
           fi
 
+      - name: Verificar Ruff e Mypy no DataProcessorService
+        run: |
+          cd DataProcessorService
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          ruff format .
+          ruff check .
+          mypy .
+          
+      - name: Verificar Ruff e Mypy no WeatherDataService
+        run: |
+          cd WeatherDataService
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          ruff format .
+          ruff check .
+          mypy .
+
+      - name: Verificar Ruff e Mypy no SharedDatabaseService
+        run: |
+          cd SharedDatabaseService
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          ruff format .
+          ruff check .
+          mypy .
+
       - name: Instalar dependências e rodar testes - DataProcessorService
         if: env.has_tests_dataprocessor == 'true'
         run: |
@@ -108,3 +135,5 @@ jobs:
           ruff check .
           mypy .
           pytest --cov=app
+
+      
