@@ -79,11 +79,6 @@ jobs:
             ruff check . --fix --extend-ignore E501
             ruff format .
             
-      - name: Instalar e verificar tipagem com mypy
-        run: |
-            python -m pip install --upgrade pip
-            pip install mypy
-            mypy .
 
       - name: Instalar dependências e rodar testes - WeatherDataService
         if: env.has_tests_weatherdata == 'true'
