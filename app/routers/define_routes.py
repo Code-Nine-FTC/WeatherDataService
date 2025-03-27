@@ -3,13 +3,10 @@ from fastapi import FastAPI
 
 from app.routers.router.alert import router as router_alert
 from app.routers.router.alert_type import router as router_alert_type
-
-from app.routers.router.parameter_type import router as router_parameter_type
-from app.routers.router.weather_station import router
 from app.routers.router.auth import router as router_auth
+from app.routers.router.parameter_type import router as router_parameter_type
 from app.routers.router.user import router as router_user
 from app.routers.router.weather_station import router as router_weather_station
-
 
 
 def define_routes(app: FastAPI) -> None:
