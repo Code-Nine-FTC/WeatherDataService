@@ -6,7 +6,8 @@ from sqlalchemy.orm import joinedload
 
 from app.core.models.db_model import Alert, Measure, TypeAlert, WeatherStation
 from app.modules.common import ConvertDates
-from app.schemas.alert_list_schema import AlertResponse, AlertFilterSchema
+from app.schemas.alert_list_schema import AlertFilterSchema, AlertResponse
+
 
 class AlertListService:
     def __init__(self, session: AsyncSession) -> None:
@@ -15,12 +16,13 @@ class AlertListService:
     async def get_alerts(self) -> List[AlertResponse]:
         return await self._buscar_alertas_com_filtros()
 
-    async def get_filtered_alerts(self, filters: AlertFilterSchema) -> List[AlertResponse]:
+    async def get_filtered_alerts(
+        self, filters: AlertFilterSchema
+    ) -> List[AlertResponse]:
         return await self._buscar_alertas_com_filtros(filters)
 
     async def _buscar_alertas_com_filtros(
-        self,
-        filters: Optional[AlertFilterSchema] = None
+        self, filters: Optional[AlertFilterSchema] = None
     ) -> List[AlertResponse]:
         query = (
             select(Alert)
@@ -37,15 +39,13 @@ class AlertListService:
         if filters:
             if filters.date_inicial:
                 query = query.where(
-                    Alert.create_date >= ConvertDates.datetime_to_unix(
-                        filters.date_inicial
-                    )
+                    Alert.create_date
+                    >= ConvertDates.datetime_to_unix(filters.date_inicial)
                 )
             if filters.date_final:
                 query = query.where(
-                    Alert.create_date <= ConvertDates.datetime_to_unix(
-                        filters.date_final
-                    )
+                    Alert.create_date
+                    <= ConvertDates.datetime_to_unix(filters.date_final)
                 )
             if filters.station_id is not None:
                 query = query.where(WeatherStation.id == filters.station_id)

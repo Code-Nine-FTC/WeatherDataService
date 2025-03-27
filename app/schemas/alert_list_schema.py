@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, field_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.modules.common import ConvertDates
 
@@ -14,7 +14,9 @@ class AlertBase(BaseModel):
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value) -> datetime:
-        return ConvertDates.unix_to_datetime(value) if isinstance(value, int) else value
+        return (
+            ConvertDates.unix_to_datetime(value) if isinstance(value, int) else value
+        )
 
 
 class AlertResponse(AlertBase):

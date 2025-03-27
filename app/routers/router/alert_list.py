@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.auth.auth_manager import AuthManager
 from app.modules.dependency import get_db_session
-from app.schemas.alert_list_schema import AlertResponse, AlertFilterSchema
+from app.schemas.alert_list_schema import AlertFilterSchema, AlertResponse
 from app.schemas.user_view_schema import UserViewResponse
 from app.service.alert_list_service import AlertListService
 
