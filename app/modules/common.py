@@ -12,6 +12,18 @@ class ConvertDates:
                 data[field] = datetime.strptime(data[field], "%Y-%m-%d")
         return data
 
+    @staticmethod
+    def unix_to_datetime(unixtime: int) -> datetime:
+        return (
+            datetime.utcfromtimestamp(unixtime)
+            if isinstance(unixtime, int)
+            else None
+        )
+
+    @staticmethod
+    def datetime_to_unix(date: datetime) -> int:
+        return int(date.timestamp()) if isinstance(date, datetime) else None
+
 
 class Singleton(type):
     _instances: dict["Singleton", Any] = {}
