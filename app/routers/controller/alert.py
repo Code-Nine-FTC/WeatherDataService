@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.modules.basic_response import BasicResponse
 from app.schemas.alert import RequestAlert
 from app.service.alert import AlertService
-from fastapi import HTTPException, status
 
 
 class AlertController:
@@ -11,9 +12,9 @@ class AlertController:
         self._session = session
         self._service = AlertService(session)
 
-    async def delete_alert(self, requests: RequestAlert) -> BasicResponse[None]:  
-        try: 
-            await self._service.delete_alert(requests) 
+    async def delete_alert(self, requests: RequestAlert) -> BasicResponse[None]:
+        try:
+            await self._service.delete_alert(requests)
             return BasicResponse[None](data=None)
         except HTTPException as http_ex:
             await self._session.rollback()
