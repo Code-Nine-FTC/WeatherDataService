@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.database import SessionConnection
-from app.modules.basic_response import BasicResponse
 from app.modules.auth.auth_manager import AuthManager
+from app.modules.basic_response import BasicResponse
 from app.routers.controller.user_view_controller import UserViewController
 from app.schemas.user_view_schema import UserViewResponse
 
