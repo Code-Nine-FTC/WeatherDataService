@@ -37,7 +37,7 @@ class WeatherStationUpdate(BaseModel):
     address: list[str] | None = None
     latitude: float | None = None
     longitude: float | None = None
-    is_active: bool | None = None
+    last_update: datetime = datetime.now()
 
 
 class WeatherStationResponse(WeatherStationBase):
