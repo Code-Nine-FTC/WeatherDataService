@@ -5,8 +5,6 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.basic_response import BasicResponse
-
 from ..core.models.db_model import WeatherStation
 from ..schemas.weather_station import WeatherStationCreate, WeatherStationUpdate
 
@@ -24,9 +22,7 @@ class WeatherStationService:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
         return station
 
-    async def create_station(
-        self, data: WeatherStationCreate
-    ) -> None:
+    async def create_station(self, data: WeatherStationCreate) -> None:
         station_data = data.model_dump()
 
         if "create_date" in station_data:
@@ -53,6 +49,6 @@ class WeatherStationService:
     async def disable_station(self, station_id: int) -> None:
         station = await self._get_station_by_id(station_id)
 
-        station.last_update = datetime.now() #type: ignore
+        station.last_update = datetime.now()  # type: ignore
         station.is_active = False
         await self._session.commit()
