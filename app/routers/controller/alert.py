@@ -3,7 +3,11 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.basic_response import BasicResponse
-from app.schemas.alert import RequestAlert, CreateAlert, AlertResponse, AlertFilterSchema
+from app.schemas.alert import (
+    AlertResponse,
+    CreateAlert,
+    RequestAlert,
+)
 from app.service.alert import AlertService
 
 
@@ -12,7 +16,9 @@ class AlertController:
         self._session = session
         self._service = AlertService(session)
 
-    async def get_alert_by_id(self, id_alert: RequestAlert) -> BasicResponse[AlertResponse]:
+    async def get_alert_by_id(
+        self, id_alert: RequestAlert
+    ) -> BasicResponse[AlertResponse]:
         try:
             result = await self._service.get_alerts()
             return BasicResponse[AlertResponse](data=result)
@@ -46,15 +52,15 @@ class AlertController:
         try:
             alerts = await self._service.get_alerts()
             return BasicResponse[list[RequestAlert]](data=alerts)
-        except HTTPException as http_ex:
-            await self._session.rollback() 
+        except HTTPException:
+            await self._session.rollback()
         except Exception as e:
             await self._session.rollback()
             print(f"Erro ao buscar alertas: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erro interno no servidor, tente novamente mais tarde.",
-            ) 
+            )
 
     async def get_filtered_alerts(
         self, filters: RequestAlert
@@ -62,7 +68,7 @@ class AlertController:
         try:
             alerts = await self._service.get_filtered_alerts(filters)
             return BasicResponse[list[RequestAlert]](data=alerts)
-        except HTTPException as http_ex:
+        except HTTPException:
             await self._session.rollback()
         except Exception as e:
             await self._session.rollback()
@@ -71,10 +77,8 @@ class AlertController:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erro interno no servidor, tente novamente mais tarde.",
             )
-        
-    async def create_alert(
-        self, request: CreateAlert
-    ) -> BasicResponse[None]:
+
+    async def create_alert(self, request: CreateAlert) -> BasicResponse[None]:
         try:
             await self._service.create_alert(request)
             return BasicResponse[None]()

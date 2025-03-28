@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from pydantic import BaseModel
-from pydantic import BaseModel, ConfigDict, field_validator
+from datetime import datetime
+
+from pydantic import BaseModel, field_validator
 
 from app.modules.common import ConvertDates
-from datetime import datetime
+
 
 class RequestAlert(BaseModel):
     id: int
-
 
 
 class AlertResponse(BaseModel):

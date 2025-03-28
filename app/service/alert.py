@@ -2,16 +2,16 @@
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.models.db_model import Alert
-from app.schemas.alert import RequestAlert
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.core.models.db_model import Alert, Measures, TypeAlert, WeatherStation
 from app.modules.common import ConvertDates
-from app.schemas.alert import AlertFilterSchema, AlertResponse, CreateAlert
+from app.schemas.alert import (
+    AlertFilterSchema,
+    AlertResponse,
+    CreateAlert,
+    RequestAlert,
+)
 
 
 class AlertService:
@@ -71,11 +71,7 @@ class AlertService:
         result = await self._session.execute(query)
         alerts = result.scalars().all()
 
-        return [
-            AlertResponse(**dict(alert))
-            for alert in alerts
-        ]
-
+        return [AlertResponse(**dict(alert)) for alert in alerts]
 
     async def get_alert_by_id(self, id_alert: RequestAlert) -> AlertResponse:
         result = await self._session.execute(
@@ -88,11 +84,9 @@ class AlertService:
                 detail=f"Alerta com a ID {id_alert.id} não encontrado.",
             )
         return AlertResponse(**dict(alert))
-    
+
     async def create_alert(self, alert_data: CreateAlert) -> None:
-            alert = Alert(**alert_data.model_dump())
-            self._session.add(alert)
-            await self._session.flush() 
-            await self._session.commit()
-
-
+        alert = Alert(**alert_data.model_dump())
+        self._session.add(alert)
+        await self._session.flush()
+        await self._session.commit()
