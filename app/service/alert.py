@@ -71,7 +71,7 @@ class AlertService:
         result = await self._session.execute(query)
         alerts = result.scalars().all()
 
-        return [AlertResponse(**dict(alert)) for alert in alerts]
+        return [AlertResponse(**alert.__dict__) for alert in alerts]
 
     async def get_alert_by_id(self, id_alert: RequestAlert) -> AlertResponse:
         result = await self._session.execute(
@@ -83,7 +83,7 @@ class AlertService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Alerta com a ID {id_alert.id} não encontrado.",
             )
-        return AlertResponse(**dict(alert))
+        return AlertResponse(**alert.__dict__)
 
     async def create_alert(self, alert_data: CreateAlert) -> None:
         alert = Alert(**alert_data.model_dump())

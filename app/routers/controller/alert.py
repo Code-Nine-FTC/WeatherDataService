@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.basic_response import BasicResponse
 from app.schemas.alert import (
+    AlertFilterSchema,
     AlertResponse,
     CreateAlert,
     RequestAlert,
@@ -20,8 +21,8 @@ class AlertController:
         self, id_alert: RequestAlert
     ) -> BasicResponse[AlertResponse]:
         try:
-            result = await self._service.get_alerts()
-            return BasicResponse[AlertResponse](data=result)
+            result = await self._service.get_alert_by_id(id_alert)
+            return BasicResponse(data=result)
         except HTTPException as http_ex:
             await self._session.rollback()
             raise http_ex
@@ -48,12 +49,13 @@ class AlertController:
                 detail="Erro interno no servidor, tente novamente mais tarde.",
             )
 
-    async def get_alerts(self) -> BasicResponse[list[RequestAlert]]:
+    async def get_alerts(self) -> BasicResponse[list[AlertResponse]]:
         try:
             alerts = await self._service.get_alerts()
-            return BasicResponse[list[RequestAlert]](data=alerts)
-        except HTTPException:
+            return BasicResponse(data=alerts)
+        except HTTPException as http_ex:
             await self._session.rollback()
+            raise http_ex
         except Exception as e:
             await self._session.rollback()
             print(f"Erro ao buscar alertas: {e}")
@@ -63,13 +65,14 @@ class AlertController:
             )
 
     async def get_filtered_alerts(
-        self, filters: RequestAlert
-    ) -> BasicResponse[list[RequestAlert]]:
+        self, filters: AlertFilterSchema
+    ) -> BasicResponse[list[AlertResponse]]:
         try:
             alerts = await self._service.get_filtered_alerts(filters)
-            return BasicResponse[list[RequestAlert]](data=alerts)
-        except HTTPException:
+            return BasicResponse(data=alerts)
+        except HTTPException as http_ex:
             await self._session.rollback()
+            raise http_ex
         except Exception as e:
             await self._session.rollback()
             print(f"Erro ao buscar alertas filtrados: {e}")
@@ -81,7 +84,7 @@ class AlertController:
     async def create_alert(self, request: CreateAlert) -> BasicResponse[None]:
         try:
             await self._service.create_alert(request)
-            return BasicResponse[None]()
+            return BasicResponse(data=None)
         except HTTPException as http_ex:
             await self._session.rollback()
             raise http_ex
