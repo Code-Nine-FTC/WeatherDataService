@@ -7,7 +7,6 @@ from app.schemas.alert import (
     AlertFilterSchema,
     AlertResponse,
     CreateAlert,
-    RequestAlert,
 )
 from app.service.alert import AlertService
 
@@ -17,9 +16,7 @@ class AlertController:
         self._session = session
         self._service = AlertService(session)
 
-    async def get_alert_by_id(
-        self, id_alert: RequestAlert
-    ) -> BasicResponse[AlertResponse]:
+    async def get_alert_by_id(self, id_alert: int) -> BasicResponse[AlertResponse]:
         try:
             result = await self._service.get_alert_by_id(id_alert)
             return BasicResponse(data=result)
@@ -34,10 +31,10 @@ class AlertController:
                 detail="Erro interno no servidor, tente novamente mais tarde.",
             )
 
-    async def delete_alert(self, requests: RequestAlert) -> BasicResponse[None]:
+    async def delete_alert(self, alert_id: int) -> BasicResponse[None]:
         try:
-            await self._service.delete_alert(requests)
-            return BasicResponse[None](data=None)
+            await self._service.delete_alert(alert_id)
+            return BasicResponse(data=None)
         except HTTPException as http_ex:
             await self._session.rollback()
             raise http_ex
@@ -49,26 +46,11 @@ class AlertController:
                 detail="Erro interno no servidor, tente novamente mais tarde.",
             )
 
-    async def get_alerts(self) -> BasicResponse[list[AlertResponse]]:
-        try:
-            alerts = await self._service.get_alerts()
-            return BasicResponse(data=alerts)
-        except HTTPException as http_ex:
-            await self._session.rollback()
-            raise http_ex
-        except Exception as e:
-            await self._session.rollback()
-            print(f"Erro ao buscar alertas: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Erro interno no servidor, tente novamente mais tarde.",
-            )
-
     async def get_filtered_alerts(
         self, filters: AlertFilterSchema
     ) -> BasicResponse[list[AlertResponse]]:
         try:
-            alerts = await self._service.get_filtered_alerts(filters)
+            alerts = await self._service.get_alerts(filters)
             return BasicResponse(data=alerts)
         except HTTPException as http_ex:
             await self._session.rollback()

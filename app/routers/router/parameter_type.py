@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.database import SessionConnection
-from app.routers.controller.parameter_type_controller import ParameterTypeController
+from app.routers.controller.parameter_type import ParameterTypeController
 from app.schemas.parameter_type_schema import ParameterTypeResponse
 
 router = APIRouter(tags=["Parameter Types"], prefix="/parameter_types")

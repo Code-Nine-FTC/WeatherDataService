@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependency.auth import AuthManager
 from app.dependency.database import SessionConnection
 from app.modules.basic_response import BasicResponse
-from app.routers.controller.alert_type_controller import AlertTypeController
+from app.routers.controller.alert_type import AlertTypeController
 from app.schemas.alert_type_schema import (
     AlertTypeCreate,
     AlertTypeResponse,

@@ -9,7 +9,7 @@ from app.schemas.alert_type_schema import (
     AlertTypeResponse,
     AlertTypeUpdate,
 )
-from app.service.alert_type_service import AlertTypeService
+from app.service.alert_type import AlertTypeService
 
 
 class AlertTypeController:

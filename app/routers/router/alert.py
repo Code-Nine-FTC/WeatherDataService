@@ -10,36 +10,12 @@ from app.schemas.alert import (
     AlertFilterSchema,
     AlertResponse,
     CreateAlert,
-    RequestAlert,
 )
 
 router_alert = APIRouter(tags=["Alertas"], prefix="/alert")
 
 
-@router_alert.delete("/", dependencies=[Depends(AuthManager.has_authorization)])
-async def delete_alert(
-    alert_data: RequestAlert,
-    session: AsyncSession = Depends(SessionConnection.session),
-) -> BasicResponse[None]:
-    return await AlertController(session).delete_alert(alert_data)
-
-
-@router_alert.get("/", dependencies=[Depends(AuthManager.has_authorization)])
-async def get_alert_by_id(
-    alert_data: RequestAlert,
-    session: AsyncSession = Depends(SessionConnection.session),
-) -> BasicResponse[AlertResponse]:
-    return await AlertController(session).get_alert_by_id(alert_data)
-
-
 @router_alert.get("/all")
-async def get_alerts(
-    session: AsyncSession = Depends(SessionConnection.session),
-) -> BasicResponse[list[AlertResponse]]:
-    return await AlertController(session).get_alerts()
-
-
-@router_alert.get("/filter")
 async def get_filtered_alerts(
     filters: AlertFilterSchema = Query(),
     session: AsyncSession = Depends(SessionConnection.session),
@@ -53,3 +29,21 @@ async def create_alert(
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[None]:
     return await AlertController(session).create_alert(alert_data)
+
+
+@router_alert.delete(
+    "/{alert_id}", dependencies=[Depends(AuthManager.has_authorization)]
+)
+async def delete_alert(
+    alert_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[None]:
+    return await AlertController(session).delete_alert(alert_id)
+
+
+@router_alert.get("/{alert_id}")
+async def get_alert_by_id(
+    alert_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[AlertResponse]:
+    return await AlertController(session).get_alert_by_id(alert_id)

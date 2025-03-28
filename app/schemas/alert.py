@@ -15,7 +15,7 @@ class AlertResponse(BaseModel):
     measure_value: str
     type_alert_name: str
     station_name: str
-    create_date: datetime
+    create_date: datetime | int
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value) -> datetime:
@@ -33,4 +33,3 @@ class AlertFilterSchema(BaseModel):
 class CreateAlert(BaseModel):
     type_alert_id: int
     measure_id: int
-    station_id: int

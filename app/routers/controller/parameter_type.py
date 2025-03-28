@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.parameter_type_schema import ParameterTypeResponse
-from app.service.parameter_type_service import ParameterTypeService
+from app.service.parameter_type import ParameterTypeService
 
 
 class ParameterTypeController:
