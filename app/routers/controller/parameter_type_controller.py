@@ -16,7 +16,9 @@ class ParameterTypeController:
         return await self._service.list_parameter_types(name, measure_unit)
 
     async def update_parameter_type(
-        self, parameter_type_id: int, data: Dict[str, Any]  # Especifica os tipos do dicionário
+        self,
+        parameter_type_id: int,
+        data: Dict[str, Any],  # Especifica os tipos do dicionário
     ) -> None:
         await self._service.update_parameter_type(parameter_type_id, data)
 

@@ -4,8 +4,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.core.models.db_model import Alert, Measure, TypeAlert, WeatherStation
+from app.core.models.db_model import (
+    Alert,
+    Measure,
+    TypeAlert,
+    WeatherStation,
+)
 from app.modules.common import ConvertDates
+from app.modules.validation_alert import ValidationAlert
 from app.schemas.alert_list_schema import AlertFilterSchema, AlertResponse
 
 
@@ -53,6 +59,16 @@ class AlertListService:
         result = await self._session.execute(query)
         alerts = result.scalars().all()
 
+        validated_alerts = []
+        for alert in alerts:
+            measure = alert.measure
+            parameter_type = alert.type_alert.parameter.parameter_type
+            type_alert = alert.type_alert
+
+            # Validar o alerta
+            if ValidationAlert.validate_alert(measure, parameter_type, type_alert):
+                validated_alerts.append(alert)
+
         return [
             AlertResponse.model_validate({
                 "id": alert.id,
@@ -61,5 +77,5 @@ class AlertListService:
                 "station_name": alert.type_alert.parameter.station_id,
                 "create_date": alert.create_date,
             })
-            for alert in alerts
+            for alert in validated_alerts
         ]

@@ -57,12 +57,18 @@ class ParameterTypeService:
             name=parameter_type.name,
             measure_unit=parameter_type.measure_unit,
             qnt_decimals=parameter_type.qnt_decimals,
-            offset=int(parameter_type.offset) if parameter_type.offset is not None else None,
-            factor=int(parameter_type.factor) if parameter_type.factor is not None else None,
+            offset=int(parameter_type.offset)
+            if parameter_type.offset is not None
+            else None,
+            factor=int(parameter_type.factor)
+            if parameter_type.factor is not None
+            else None,
         )
 
     async def update_parameter_type(
-        self, parameter_type_id: int, data: Dict[str, Any]  # Especifica os tipos do dicionário
+        self,
+        parameter_type_id: int,
+        data: Dict[str, Any],  # Especifica os tipos do dicionário
     ) -> None:
         # Buscar o tipo de parâmetro pelo ID
         query = select(ParameterType).where(ParameterType.id == parameter_type_id)
@@ -101,7 +107,7 @@ class ParameterTypeService:
         # Atualizar os campos
         for key, value in data.items():
             setattr(parameter_type, key, value)
-        parameter_type.last_update = datetime.now()
+        parameter_type.last_update = datetime.now()  # type: ignore[assignment]
 
         # Salvar as alterações
         await self._session.commit()
