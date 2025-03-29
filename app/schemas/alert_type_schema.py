@@ -19,7 +19,7 @@ class AlertTypeUpdate(BaseModel):
     math_signal: str | None = None
     status: str | None = None
     is_active: bool | None = None
-    last_update: datetime = datetime.now()
+    last_update: datetime | None = datetime.now()
 
 
 class AlertTypeResponse(BaseModel):
@@ -28,7 +28,7 @@ class AlertTypeResponse(BaseModel):
     name: str
     value: int
     math_signal: str
-    status: str | None
+    status: str | None | None
     is_active: bool
     create_date: int
     last_update: datetime

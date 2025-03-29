@@ -53,28 +53,12 @@ class AlertService:
             join weather_stations ws
                 on ws.id = p.station_id
             where 1=1
-            {
-                "and a.create_date >= :date_create"
-                if filters and filters.date_inicial
-                else ""
-            }
-            {
-                "and a.create_date <= :date_final"
-                if filters and filters.date_final
-                else ""
-            }
+            {"and ta.id = :alert_type_id" if filters and filters.alert_type_id else ""}
             {"and ws.id = :station_id" if filters and filters.station_id else ""}
             """
         )
-
-        if filters.date_inicial:
-            query = query.bindparams(
-                date_create=ConvertDates.datetime_to_unix(filters.date_inicial)
-            )
-        if filters.date_final:
-            query = query.bindparams(
-                date_final=ConvertDates.datetime_to_unix(filters.date_final)
-            )
+        if filters and filters.alert_type_id:
+            query = query.bindparams(alert_type_id=filters.alert_type_id)
         if filters.station_id:
             query = query.bindparams(station_id=filters.station_id)
 

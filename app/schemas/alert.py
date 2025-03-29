@@ -25,6 +25,5 @@ class AlertResponse(BaseModel):
 
 
 class AlertFilterSchema(BaseModel):
-    date_inicial: datetime | None = None
-    date_final: datetime | None = None
+    alert_type_id: int | None = None
     station_id: int | None = None
