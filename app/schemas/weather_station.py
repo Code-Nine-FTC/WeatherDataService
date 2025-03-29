@@ -70,6 +70,7 @@ class WeatherStationResponse(BaseModel):
     address: dict[str, str]
     create_date: datetime
     status: bool
+    parameter_type_ids: list[int] | None = []
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value: str | datetime) -> datetime:
@@ -79,8 +80,9 @@ class WeatherStationResponse(BaseModel):
 
 class WeatherStationResponseList(BaseModel):
     id: int
-    name: str
+    name_station: str
     uid: str
-    address: StationAddress
+    address: dict[str, str]
     create_date: int
-    is_active: bool
+    status: bool
+    parameter_type_ids: list[int] | None = []

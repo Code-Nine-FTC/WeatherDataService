@@ -80,7 +80,7 @@ class ParameterTypeService:
         self, parameter_type_id: int
     ) -> ParameterTypeResponse:
         parameter_type = await self._search_parameter_type_id(parameter_type_id)
-        return ParameterTypeResponse(**parameter_type.o)
+        return ParameterTypeResponse(**parameter_type)
 
     async def update_parameter_type(
         self,
@@ -99,15 +99,17 @@ class ParameterTypeService:
     async def _search_parameter_type_id(
         self, parameter_type_id: int
     ) -> ParameterType:
-        parameter_type = await self._session.execute(
-            select(ParameterType).where(ParameterType.id == parameter_type_id)
-        )
+        query = text(
+            f"SELECT * FROM parameter_types WHERE id = :parameter_type_id"
+        ).bindparams(parameter_type_id=parameter_type_id)
+        result = await self._session.execute(query)
+        parameter_type = result.fetchone()
         if parameter_type is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
             )
-        return parameter_type
+        return ParameterType(**parameter_type)
 
     async def _search_parameter_type(
         self,

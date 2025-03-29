@@ -12,9 +12,8 @@ from app.schemas.alert_type_schema import (
     AlertTypeUpdate,
 )
 
-router = APIRouter(tags=["Tipos de alerta"], prefix="/alert_type")
+router = APIRouter(tags=["Tipos de alerta"], prefix="/alert_type", dependencies=[Depends(AuthManager.has_authorization)])
 
-dependencies = ([Depends(AuthManager.has_authorization)],)
 
 
 @router.post("/")

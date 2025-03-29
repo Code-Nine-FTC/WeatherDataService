@@ -113,14 +113,21 @@ class WeatherStationService:
     ) -> list[WeatherStationResponse]:
         query = text(
             f"""
-            select ws.id,
-                ws."name" as name_station, 
-                ws.uid ,
+            SELECT 
+                ws.id,
+                ws."name" AS name_station, 
+                ws.uid,
                 ws.address,
                 ws.create_date,
-                ws.is_active as status
-            from weather_stations ws 
-            where 1=1  
+                ws.is_active AS status,
+                COALESCE(
+                    (SELECT ARRAY_AGG(p.id) 
+                    FROM parameters p  
+                    WHERE p.station_id::BIGINT = ws.id),  
+                    ARRAY[]::BIGINT[]
+                ) AS parameter_type_ids  
+            FROM weather_stations ws
+            where 1 =1
             {"and ws.uid = :uid " if filters.uid is not None else ""}
             {"and ws.is_active = :status" if filters.status is not None else ""}
             {'and ws."name" like :name_station ' if filters.name is not None else ""}
@@ -138,12 +145,31 @@ class WeatherStationService:
         return [WeatherStationResponse(**station._asdict()) for station in stations]
 
     async def get_station_by_id(self, station_id: int) -> WeatherStationResponseList:
-        query = select(WeatherStation).where(WeatherStation.id == station_id)
+        query = text(
+            f"""
+            SELECT 
+                ws.id,
+                ws."name" AS name_station, 
+                ws.uid,
+                ws.address,
+                ws.create_date,
+                ws.is_active AS status,
+                COALESCE(
+                    (SELECT ARRAY_AGG(p.id) 
+                    FROM parameters p  
+                    WHERE p.station_id::BIGINT = ws.id),  
+                    ARRAY[]::BIGINT[]
+                ) AS parameter_type_ids  
+            FROM weather_stations ws
+            where 1 = 1
+            and ws.id = :station_id
+            """
+        ).bindparams(station_id=station_id)
         result = await self._session.execute(query)
-        station = result.scalar()
+        station = result.fetchone()
         if not station:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
-        return WeatherStationResponseList(**station.__dict__)
+        return WeatherStationResponseList(**station._asdict())
 
     async def _get_station_by_uid(
         self, uid: str
