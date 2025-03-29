@@ -23,6 +23,7 @@ class CreateParameterType(BaseModel):
 class FilterParameterType(BaseModel):
     name: str | None = None
     measure_unit: str | None = None
+    is_active: bool | None = None
 
 
 class UpdateParameterType(BaseModel):

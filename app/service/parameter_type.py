@@ -51,13 +51,16 @@ class ParameterTypeService:
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
             {"and pt.measure_unit like :measure_unit" if filters and filters.measure_unit else ""}
-
+            {"and pt.is_active is :is_active" if filters and filters.is_active else ""}
     """
         )
         if filters and filters.name:
             query = query.bindparams(name=f"%{filters.name}%")
         if filters and filters.measure_unit:
             query = query.bindparams(measure_unit=f"%{filters.measure_unit}%")
+        if filters and filters.is_active:
+            query = query.bindparams(is_active=filters.is_active)
+
         result = await self._session.execute(query)
         parameter_types = result.fetchall()
         return [ParameterTypeResponse(**pt._asdict()) for pt in parameter_types]
