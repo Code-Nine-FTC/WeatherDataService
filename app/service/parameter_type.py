@@ -3,7 +3,7 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from datetime import datetime
 from app.core.models.db_model import ParameterType
 from app.schemas.parameter_type import (
     CreateParameterType,
@@ -64,12 +64,23 @@ class ParameterTypeService:
         result = await self._session.execute(query)
         parameter_types = result.fetchall()
         return [ParameterTypeResponse(**pt._asdict()) for pt in parameter_types]
+    
+    async def delete_parameter_type(
+        self, parameter_type_id: int
+    ) -> None:
+        parameter_type = await self._search_parameter_type_id(parameter_type_id)
+        await self._session.execute(
+            update(ParameterType)
+            .where(ParameterType.id == parameter_type.id)
+            .values(is_active=False, last_update=datetime.now())
+        )
+        await self._session.commit()
 
     async def get_parameter_type(
         self, parameter_type_id: int
     ) -> ParameterTypeResponse:
-        parameter_type = self._search_parameter_type_id(parameter_type_id)
-        return ParameterTypeResponse(**parameter_type.__dict__)
+        parameter_type = await self._search_parameter_type_id(parameter_type_id)
+        return ParameterTypeResponse(**parameter_type.o)
 
     async def update_parameter_type(
         self,
@@ -88,7 +99,9 @@ class ParameterTypeService:
     async def _search_parameter_type_id(
         self, parameter_type_id: int
     ) -> ParameterType:
-        parameter_type = await self._session.get(ParameterType, parameter_type_id)
+        parameter_type = await self._session.execute(
+            select(ParameterType).where(ParameterType.id == parameter_type_id)
+        )
         if parameter_type is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

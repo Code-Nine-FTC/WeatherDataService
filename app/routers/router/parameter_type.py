@@ -28,36 +28,18 @@ async def list_parameter_types(
 ) -> BasicResponse[list[ParameterTypeResponse]]:
     return await ParameterTypeController(session).list_parameter_types(filters)
 
+@router.patch("/{parameter_type_id}")
+async def delete_parameter_type(
+    parameter_type_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[None]:
+    return await ParameterTypeController(session).disable_parameter_type(parameter_type_id)
 
-# @router.get("/{parameter_type_id}")
-# async def get_parameter_type(
-#     parameter_type_id: int,
-#     session: AsyncSession = Depends(SessionConnection.session),
-# ) -> ParameterTypeResponse:
-#     parameter_type = await ParameterTypeController(session).get_parameter_type(
-#         parameter_type_id
-#     )
-#     if not parameter_type:
-#         raise HTTPException(
-#             status_code=404, detail="Tipo de parâmetro não encontrado."
-#         )
-#     return parameter_type
+@router.get("/{parameter_type_id}")
+async def get_parameter_type(
+    parameter_type_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[ParameterTypeResponse]:
+    return await ParameterTypeController(session).get_parameter_type(
+        parameter_type_id)
 
-
-# class ParameterTypeUpdate(BaseModel):
-#     name: Optional[str] = None
-#     measure_unit: Optional[str] = None
-#     qnt_decimals: Optional[int] = None
-#     offset: Optional[float] = None
-#     factor: Optional[float] = None
-
-
-# @router.patch("/{parameter_type_id}")
-# async def update_parameter_type(
-#     parameter_type_id: int,
-#     data: ParameterTypeUpdate,
-#     session: AsyncSession = Depends(SessionConnection.session),
-# ) -> None:
-#     await ParameterTypeController(session).update_parameter_type(
-#         parameter_type_id, data.dict(exclude_unset=True)
-#     )

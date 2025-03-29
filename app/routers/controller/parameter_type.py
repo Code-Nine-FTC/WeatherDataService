@@ -58,5 +58,28 @@ class ParameterTypeController:
 
     async def get_parameter_type(
         self, parameter_type_id: int
-    ) -> Optional[ParameterTypeResponse]:
-        return await self._service.get_parameter_type(parameter_type_id)
+    ) -> BasicResponse[ParameterTypeResponse]:
+        try:
+            parameter_type = await self._service.get_parameter_type(parameter_type_id)
+            return await BasicResponse[ParameterTypeResponse](data= parameter_type)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno ao obter o tipo de parâmetro: {str(e)}",
+            )
+
+    async def disable_parameter_type(
+        self, parameter_type_id: int
+    ) -> BasicResponse[None]:
+        try:
+            await self._service.delete_parameter_type(parameter_type_id)
+            return BasicResponse[None](data=None)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno ao desativar o tipo de parâmetro: {str(e)}",
+            )

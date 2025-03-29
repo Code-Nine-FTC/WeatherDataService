@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 
 class ParameterTypeResponse(BaseModel):
+    id: int
     measure_unit: str
     qnt_decimals: int
     offset: int | None = None
