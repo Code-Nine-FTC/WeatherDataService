@@ -85,11 +85,13 @@ class WeatherStationService:
 
         station_data.pop("address", None)
 
-        await self._session.execute(
-            update(WeatherStation)
-            .where(WeatherStation.id == station_id)
-            .values(**station_data)
-        )
+        if station_data:
+
+            await self._session.execute(
+                update(WeatherStation)
+                .where(WeatherStation.id == station_id)
+                .values(**station_data)
+            )
 
         await self._session.commit()
 
@@ -120,6 +122,8 @@ class WeatherStationService:
                 ws.address,
                 ws.create_date,
                 ws.is_active AS status,
+                ws.latitude,
+                ws.longitude,
                 COALESCE(
                     (SELECT ARRAY_AGG(p.id) 
                     FROM parameters p  

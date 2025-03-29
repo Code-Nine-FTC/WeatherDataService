@@ -8,11 +8,15 @@ from pydantic import (
 
 from app.modules.common import ConvertDates
 
+class StationAddress(BaseModel):
+    city: str
+    state: str
+    country: str
 
 class WeatherStationBase(BaseModel):
     name: str
     uid: str
-    address: list[str]
+    address: StationAddress
     latitude: float
     longitude: float
     create_date: datetime
@@ -23,12 +27,6 @@ class WeatherStationBase(BaseModel):
         if isinstance(value, str):
             return datetime.fromisoformat(value)
         return value
-
-
-class StationAddress(BaseModel):
-    city: str
-    state: str
-    country: str
 
 
 class StationAdressUpdate(BaseModel):
@@ -67,7 +65,9 @@ class WeatherStationResponse(BaseModel):
     id: int
     name_station: str
     uid: str
-    address: dict[str, str]
+    address: StationAddress | None = None
+    latitude: float
+    longitude: float
     create_date: datetime
     status: bool
     parameter_type_ids: list[int] | None = []
@@ -82,7 +82,9 @@ class WeatherStationResponseList(BaseModel):
     id: int
     name_station: str
     uid: str
-    address: dict[str, str]
+    address: StationAddress | None = None
+    latitude: float
+    longitude: float
     create_date: int
     status: bool
     parameter_type_ids: list[int] | None = []

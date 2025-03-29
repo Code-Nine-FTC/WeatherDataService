@@ -56,7 +56,7 @@ async def update_station(
     return await WeatherStationController(session).update_station(station_id, data)
 
 
-@router.patch("/{station_id}/parameter", dependencies=[Depends(AuthManager.has_authorization)])
+@router.patch("/{station_id}/parameter/{parameter_id}", dependencies=[Depends(AuthManager.has_authorization)])
 async def remove_parameter(
     station_id: int,
     parameter_id: int,
