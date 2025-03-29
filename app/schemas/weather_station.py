@@ -36,7 +36,7 @@ class WeatherStationCreate(BaseModel):
     latitude: float
     longitude: float
     address: StationAddress
-    parameter_types = list[int] = []
+    parameter_types: list[int] = []
 
 
 class WeatherStationUpdate(BaseModel):
