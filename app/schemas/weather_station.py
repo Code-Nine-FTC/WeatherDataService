@@ -51,3 +51,20 @@ class WeatherStationUpdate(BaseModel):
 class WeatherStationResponse(WeatherStationBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
+
+
+class FilterWeatherStation(BaseModel):
+    uid: str = None
+    name: str = None
+    start_date: datetime = None
+    end_date: datetime = None
+    status: bool = None
+
+
+class WeatherStationResponse(BaseModel):
+    id: int
+    name: str
+    uid: str
+    address: list[str]
+    create_date: datetime
+    status: bool
