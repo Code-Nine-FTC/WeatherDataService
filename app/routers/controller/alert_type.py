@@ -34,9 +34,9 @@ class AlertTypeController:
                 detail="Erro interno no servidor, tente novamente mais tarde.",
             )
 
-    async def list_alert_types(self) -> BasicResponse[list[AlertTypeResponse]]:
+    async def list_alert_types(self, filters: bool) -> BasicResponse[list[AlertTypeResponse]]:
         try:
-            alert_types = await self._service.list_alert_types()
+            alert_types = await self._service.list_alert_types(filters)
             return BasicResponse[list[AlertTypeResponse]](data=alert_types)
         except Exception as http_ex:
             raise http_ex

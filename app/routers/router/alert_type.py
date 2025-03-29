@@ -26,9 +26,10 @@ async def create_alert_type(
 
 @router.get("/")
 async def list_alert_types(
+    filters: bool = True,
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[AlertTypeResponse]]:
-    return await AlertTypeController(session).list_alert_types()
+    return await AlertTypeController(session).list_alert_types(filters)
 
 
 @router.get("/{alert_type_id}")
