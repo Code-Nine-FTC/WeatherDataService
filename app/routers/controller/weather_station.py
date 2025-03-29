@@ -46,6 +46,22 @@ class WeatherStationController:
                 detail=f"Erro interno: {str(e)}",
             )
 
+    async def remove_parameter(
+        self, station_id: int, parameter_id: int
+    ) -> BasicResponse[None]:
+        try:
+            await self._service.remove_parameter(station_id, parameter_id)
+            return BasicResponse[None](data=None)
+        except HTTPException as http_ex:
+            await self._session.rollback()
+            raise http_ex
+        except Exception as e:
+            await self._session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno: {str(e)}",
+            )
+
     async def disable_station(self, station_id: int) -> BasicResponse[None]:
         try:
             await self._service.disable_station(station_id)

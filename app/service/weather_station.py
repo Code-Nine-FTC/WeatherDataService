@@ -80,19 +80,25 @@ class WeatherStationService:
         station_data = data.model_dump(exclude_unset=True)
 
         if "parameter_types" in station_data:
-            await self._create_parameter(
-                station_data["parameter_types"], station_id
-            )
+            await self._create_parameter(station_data["parameter_types"], station_id)
+            station_data.pop("parameter_types", None)
 
-        if station_data.get("address") is None:
-            station_data.pop("address", None)
-            
+        station_data.pop("address", None)
+
         await self._session.execute(
-            update(WeatherStation).where(WeatherStation.id == station_id).values(
-                **station_data
-            )
+            update(WeatherStation)
+            .where(WeatherStation.id == station_id)
+            .values(**station_data)
         )
 
+        await self._session.commit()
+
+    async def remove_parameter(self, station_id: int, parameter_id: int) -> None:
+        parameter = await self._get_parameter(parameter_id, station_id)
+        if not parameter:
+            raise HTTPException(status_code=404, detail="Parâmetro não encontrado")
+
+        await self._session.delete(parameter)
         await self._session.commit()
 
     async def disable_station(self, station_id: int) -> None:

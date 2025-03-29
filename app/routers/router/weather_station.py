@@ -57,6 +57,18 @@ async def update_station(
     return await WeatherStationController(session).update_station(station_id, data)
 
 
+@router.patch("/{station_id}/parameter")
+async def remove_parameter(
+    station_id: int,
+    parameter_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+    current_user: UserResponse = Depends(AuthManager.has_authorization),
+) -> BasicResponse[None]:
+    return await WeatherStationController(session).remove_parameter(
+        station_id, parameter_id
+    )
+
+
 @router.patch("/disable/{station_id}")
 async def disable_station(
     station_id: int,
