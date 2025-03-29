@@ -63,7 +63,7 @@ class FilterWeatherStation(BaseModel):
 
 class WeatherStationResponse(BaseModel):
     id: int
-    name: str
+    name_station: str
     uid: str
     address: list[str]
     create_date: datetime
