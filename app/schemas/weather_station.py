@@ -31,6 +31,11 @@ class StationAddress(BaseModel):
     state: str
     country: str
 
+class StationAdressUpdate(BaseModel):
+    city: str | None = None
+    state: str | None = None
+    country: str | None = None
+
 
 class WeatherStationCreate(BaseModel):
     name: str
@@ -44,7 +49,7 @@ class WeatherStationCreate(BaseModel):
 class WeatherStationUpdate(BaseModel):
     name: str | None = None
     uid: str | None = None
-    address: dict[str, str] | None = None
+    address: StationAdressUpdate | None = None
     latitude: float | None = None
     longitude: float | None = None
     last_update: datetime | None= datetime.now() 
