@@ -12,6 +12,10 @@ class ParameterTypeResponse(BaseModel):
     factor: int | None = None
     name: str
 
+    model_config = {
+        "from_attributes": True,
+    }
+
 
 class CreateParameterType(BaseModel):
     name: str

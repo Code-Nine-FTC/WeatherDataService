@@ -61,9 +61,9 @@ class ParameterTypeController:
     ) -> BasicResponse[ParameterTypeResponse]:
         try:
             parameter_type = await self._service.get_parameter_type(parameter_type_id)
-            return await BasicResponse[ParameterTypeResponse](data= parameter_type)
-        except HTTPException as e:
-            raise e
+            return BasicResponse[ParameterTypeResponse](data= parameter_type)
+        except HTTPException as http_ex:
+            raise http_ex
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -79,8 +79,17 @@ class ParameterTypeService:
     async def get_parameter_type(
         self, parameter_type_id: int
     ) -> ParameterTypeResponse:
-        parameter_type = await self._search_parameter_type_id(parameter_type_id)
-        return ParameterTypeResponse(**parameter_type)
+        # parameter_type = await self._search_parameter_type_id(parameter_type_id)
+        parameter_type = await self._session.get(ParameterType, parameter_type_id)
+        if parameter_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
+            )
+        
+        return ParameterTypeResponse.model_validate(
+            parameter_type, from_attributes=True
+        )
 
     async def update_parameter_type(
         self,
