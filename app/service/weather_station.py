@@ -13,6 +13,7 @@ from ..schemas.weather_station import (
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
+    PameterByStation
 )
 
 
@@ -117,21 +118,28 @@ class WeatherStationService:
             f"""
             SELECT 
                 ws.id,
-                ws."name" AS name_station, 
+                ws."name" AS name_station,
                 ws.uid,
                 ws.address,
-                ws.create_date,
-                ws.is_active AS status,
                 ws.latitude,
                 ws.longitude,
+                ws.create_date,
+                ws.is_active AS status,
                 COALESCE(
-                    (SELECT ARRAY_AGG(p.id) 
-                    FROM parameters p  
-                    WHERE p.station_id::BIGINT = ws.id),  
-                    ARRAY[]::BIGINT[]
-                ) AS parameter_type_ids  
+                (SELECT JSONB_AGG(
+                    JSONB_BUILD_OBJECT(
+                        'parameter_id', p.id,
+                        'name_parameter', pt.name
+                    )
+                )
+                FROM parameters p
+                join parameter_types pt
+                on pt.id = p.id
+                WHERE p.station_id::BIGINT = ws.id),
+                '[]'::JSONB
+            ) AS parameters
             FROM weather_stations ws
-            where 1 =1
+            where 1 = 1
             {"and ws.uid = :uid " if filters.uid is not None else ""}
             {"and ws.is_active = :status" if filters.status is not None else ""}
             {'and ws."name" like :name_station ' if filters.name is not None else ""}
@@ -156,14 +164,23 @@ class WeatherStationService:
                 ws."name" AS name_station, 
                 ws.uid,
                 ws.address,
+                ws.latitude,
+                ws.longitude,
                 ws.create_date,
                 ws.is_active AS status,
                 COALESCE(
-                    (SELECT ARRAY_AGG(p.id) 
-                    FROM parameters p  
-                    WHERE p.station_id::BIGINT = ws.id),  
-                    ARRAY[]::BIGINT[]
-                ) AS parameter_type_ids  
+                (SELECT JSONB_AGG(
+                    JSONB_BUILD_OBJECT(
+                        'parameter_id', p.id,
+                        'name_parameter', pt.name
+                    )
+                ) 
+                FROM parameters p  
+                join parameter_types pt 
+                on pt.id = p.id
+                WHERE p.station_id::BIGINT = ws.id),  
+                '[]'::JSONB
+            ) AS parameters   
             FROM weather_stations ws
             where 1 = 1
             and ws.id = :station_id
@@ -182,3 +199,22 @@ class WeatherStationService:
         result = await self._session.execute(query)
         station = result.scalar()
         return WeatherStationResponseList(**station.__dict__) if station else None
+
+    async def get_station_by_parameter(self, parmater_type_id: int) -> list[PameterByStation]:
+        query = text(
+            f"""
+            select 
+                p.id,
+                ws.name as name_station
+            from weather_stations ws 
+            join parameters p 
+                on ws.id = p.station_id 
+            join parameter_types pt 
+                on p.parameter_type_id = pt.id 
+            where pt.id = :parameter_type_id
+            and ws.is_active = true
+            """
+        ).bindparams(parameter_type_id=parmater_type_id)
+        result = await self._session.execute(query)
+        station = result.fetchall()
+        return [PameterByStation(**station._asdict()) for station in station]

@@ -9,6 +9,7 @@ from app.schemas.weather_station import (
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
+    PameterByStation
 )
 from app.service.weather_station import WeatherStationService
 
@@ -103,6 +104,20 @@ class WeatherStationController:
     ) -> BasicResponse[list[WeatherStationResponse]]:
         try:
             stations = await self._service.get_stations(filters)
+            return BasicResponse(data=stations)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno: {str(e)}",
+            )
+
+    async def get_parameter_by_station(
+        self, type_parameter_id: int
+    ) -> BasicResponse[list[PameterByStation]]:
+        try:
+            stations = await self._service.get_station_by_parameter(type_parameter_id)
             return BasicResponse(data=stations)
         except HTTPException as e:
             raise e

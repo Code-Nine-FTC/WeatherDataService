@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-
+from typing import Any
 from pydantic import (
     BaseModel,
     field_validator,
@@ -70,7 +70,7 @@ class WeatherStationResponse(BaseModel):
     longitude: float
     create_date: datetime
     status: bool
-    parameter_type_ids: list[int] | None = []
+    parameters: list[dict[str, Any]] | None = []
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value: str | datetime) -> datetime:
@@ -87,4 +87,9 @@ class WeatherStationResponseList(BaseModel):
     longitude: float
     create_date: int
     status: bool
-    parameter_type_ids: list[int] | None = []
+    parameters: list[dict[str, Any]] | None = []
+
+
+class PameterByStation(BaseModel):
+    id: int
+    name_station: str
