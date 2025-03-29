@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.models.db_model import Parameter, WeatherStation
@@ -77,10 +77,21 @@ class WeatherStationService:
     ) -> None:
         station = await self._get_station_by_id(station_id)
 
-        station_data = data.model_dump()
+        station_data = data.model_dump(exclude_unset=True)
 
-        for key, value in station_data.items():
-            setattr(station, key, value)
+        if "parameter_types" in station_data:
+            await self._create_parameter(
+                station_data["parameter_types"], station_id
+            )
+
+        if station_data.get("address") is None:
+            station_data.pop("address", None)
+            
+        await self._session.execute(
+            update(WeatherStation).where(WeatherStation.id == station_id).values(
+                **station_data
+            )
+        )
 
         await self._session.commit()
 
