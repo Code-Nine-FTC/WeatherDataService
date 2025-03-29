@@ -18,7 +18,7 @@ class WeatherStationController:
     ) -> BasicResponse[None]:
         try:
             await self._service.create_station(data)
-            return BasicResponse[None](data=None)
+            return BasicResponse(data=None)
         except HTTPException as e:
             raise e
         except Exception as e:
@@ -32,7 +32,7 @@ class WeatherStationController:
     ) -> BasicResponse[None]:
         try:
             await self._service.update_station(station_id, data)
-            return BasicResponse[None](data=None)
+            return BasicResponse(data=None)
         except HTTPException as e:
             if e.status_code in {400, 403, 404}:
                 raise e

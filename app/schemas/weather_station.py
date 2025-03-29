@@ -24,11 +24,19 @@ class WeatherStationBase(BaseModel):
         return value
 
 
+class StationAddress(BaseModel):
+    city: str
+    state: str
+    country: str
+
+
 class WeatherStationCreate(BaseModel):
     name: str
     uid: str
     latitude: float
     longitude: float
+    address: StationAddress
+    parameter_types = list[int] = []
 
 
 class WeatherStationUpdate(BaseModel):

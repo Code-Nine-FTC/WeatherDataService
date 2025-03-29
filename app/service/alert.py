@@ -9,7 +9,6 @@ from app.modules.common import ConvertDates
 from app.schemas.alert import (
     AlertFilterSchema,
     AlertResponse,
-    CreateAlert,
 )
 
 
@@ -113,9 +112,3 @@ class AlertService:
                 detail=f"Alerta com a ID {id_alert} não encontrado.",
             )
         return AlertResponse(**alert._asdict())
-
-    async def create_alert(self, alert_data: CreateAlert) -> None:
-        alert = Alert(**alert_data.model_dump())
-        self._session.add(alert)
-        await self._session.flush()
-        await self._session.commit()

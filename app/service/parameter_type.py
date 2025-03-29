@@ -1,113 +1,101 @@
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import ParameterType
-from app.schemas.parameter_type_schema import ParameterTypeResponse
+from app.schemas.parameter_type import (
+    CreateParameterType,
+    FilterParameterType,
+    ParameterTypeResponse,
+    UpdateParameterType,
+)
 
 
 class ParameterTypeService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def create_parameter_type(self, data: CreateParameterType) -> None:
+        parameter = await self._search_parameter_type(
+            data.name,
+            data.measure_unit,
+            data.qnt_decimals,
+            data.offset,
+            data.factor,
+        )
+        parameter_type = ParameterType(**parameter.__dict__)
+        self._session.add(parameter_type)
+        await self._session.flush()
+        await self._session.commit()
+
     async def list_parameter_types(
-        self, name: Optional[str] = None, measure_unit: Optional[str] = None
+        self, filters: FilterParameterType | None = None
     ) -> List[ParameterTypeResponse]:
         query = select(ParameterType)
 
-        # Adicionar filtros opcionais
-        if name:
-            query = query.where(ParameterType.name == name)
-        if measure_unit:
-            query = query.where(ParameterType.measure_unit == measure_unit)
+        if filters.name:
+            query = query.where(ParameterType.name == filters.name)
+        if filters.measure_unit:
+            query = query.where(ParameterType.measure_unit == filters.measure_unit)
 
         result = await self._session.execute(query)
         parameter_types = result.scalars().all()
 
-        # Converter para o schema de resposta
-        return [
-            ParameterTypeResponse(
-                measure_unit=pt.measure_unit,
-                qnt_decimals=pt.qnt_decimals,
-                offset=int(pt.offset)
-                if pt.offset is not None
-                else None,  # Conversão para int
-                factor=int(pt.factor)
-                if pt.factor is not None
-                else None,  # Conversão para int
-                name=pt.name,
-            )
-            for pt in parameter_types
-        ]
+        return [ParameterTypeResponse(**pt.__dict__) for pt in parameter_types]
 
     async def get_parameter_type(
         self, parameter_type_id: int
-    ) -> Optional[ParameterTypeResponse]:
-        query = select(ParameterType).where(ParameterType.id == parameter_type_id)
-        result = await self._session.execute(query)
-        parameter_type = result.scalar_one_or_none()
-
-        if not parameter_type:
-            return None
-
-        return ParameterTypeResponse(
-            name=parameter_type.name,
-            measure_unit=parameter_type.measure_unit,
-            qnt_decimals=parameter_type.qnt_decimals,
-            offset=int(parameter_type.offset)
-            if parameter_type.offset is not None
-            else None,
-            factor=int(parameter_type.factor)
-            if parameter_type.factor is not None
-            else None,
-        )
+    ) -> ParameterTypeResponse:
+        parameter_type = self._search_parameter_type_id(parameter_type_id)
+        return ParameterTypeResponse(**parameter_type.__dict__)
 
     async def update_parameter_type(
         self,
         parameter_type_id: int,
-        data: Dict[str, Any],  # Especifica os tipos do dicionário
+        data: UpdateParameterType,
     ) -> None:
-        # Buscar o tipo de parâmetro pelo ID
-        query = select(ParameterType).where(ParameterType.id == parameter_type_id)
+        parameter_type = await self._search_parameter_type_id(parameter_type_id)
+        data = {k: v for k, v in data.model_dump().items() if v is not None}
+        self._session.execute(
+            update(ParameterType)
+            .where(ParameterType.id == parameter_type.id)
+            .values(**data)
+        )
+        await self._session.commit()
+
+    async def _search_parameter_type_id(
+        self, parameter_type_id: int
+    ) -> ParameterType:
+        parameter_type = await self._session.get(ParameterType, parameter_type_id)
+        if parameter_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
+            )
+        return parameter_type
+
+    async def _search_parameter_type(
+        self,
+        name: str,
+        measure_unit: str,
+        qnt_decimals: int,
+        offset: float | None,
+        factor: float | None,
+    ) -> ParameterType:
+        query = select(ParameterType).where(
+            ParameterType.name == name,
+            ParameterType.measure_unit == measure_unit,
+            ParameterType.qnt_decimals == qnt_decimals,
+            ParameterType.offset == offset,
+            ParameterType.factor == factor,
+        )
         result = await self._session.execute(query)
         parameter_type = result.scalar_one_or_none()
-
-        if not parameter_type:
+        if parameter_type is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Tipo de parâmetro não encontrado.",
             )
-
-        # Verificar se as novas informações são iguais às atuais
-        if all(getattr(parameter_type, key) == value for key, value in data.items()):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="As informações fornecidas são iguais às atuais.",
-            )
-
-        # Verificar se já existe um tipo de parâmetro com as mesmas informações
-        query = select(ParameterType).where(
-            ParameterType.name == data.get("name"),
-            ParameterType.measure_unit == data.get("measure_unit"),
-            ParameterType.qnt_decimals == data.get("qnt_decimals"),
-            ParameterType.offset == data.get("offset"),
-            ParameterType.factor == data.get("factor"),
-            ParameterType.id != parameter_type_id,
-        )
-        result = await self._session.execute(query)
-        if result.scalar_one_or_none():
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Já existe um tipo de parâmetro com as mesmas informações.",
-            )
-
-        # Atualizar os campos
-        for key, value in data.items():
-            setattr(parameter_type, key, value)
-        parameter_type.last_update = datetime.now()
-
-        # Salvar as alterações
-        await self._session.commit()
+        return parameter_type

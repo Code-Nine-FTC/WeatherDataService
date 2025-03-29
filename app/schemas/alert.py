@@ -28,8 +28,3 @@ class AlertFilterSchema(BaseModel):
     date_inicial: datetime | None = None
     date_final: datetime | None = None
     station_id: int | None = None
-
-
-class CreateAlert(BaseModel):
-    type_alert_id: int
-    measure_id: int

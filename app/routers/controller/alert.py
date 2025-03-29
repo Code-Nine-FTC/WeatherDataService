@@ -6,7 +6,6 @@ from app.modules.basic_response import BasicResponse
 from app.schemas.alert import (
     AlertFilterSchema,
     AlertResponse,
-    CreateAlert,
 )
 from app.service.alert import AlertService
 
@@ -58,21 +57,6 @@ class AlertController:
         except Exception as e:
             await self._session.rollback()
             print(f"Erro ao buscar alertas filtrados: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Erro interno no servidor, tente novamente mais tarde.",
-            )
-
-    async def create_alert(self, request: CreateAlert) -> BasicResponse[None]:
-        try:
-            await self._service.create_alert(request)
-            return BasicResponse(data=None)
-        except HTTPException as http_ex:
-            await self._session.rollback()
-            raise http_ex
-        except Exception as e:
-            await self._session.rollback()
-            print(f"Erro ao criar alerta: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erro interno no servidor, tente novamente mais tarde.",

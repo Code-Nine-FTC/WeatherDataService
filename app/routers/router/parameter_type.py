@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.database import SessionConnection
 from app.routers.controller.parameter_type import ParameterTypeController
-from app.schemas.parameter_type_schema import ParameterTypeResponse
+from app.schemas.parameter_type import ParameterTypeResponse
 
 router = APIRouter(tags=["Parameter Types"], prefix="/parameter_types")
 

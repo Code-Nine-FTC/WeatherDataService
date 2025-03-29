@@ -9,7 +9,6 @@ from app.routers.controller.alert import AlertController
 from app.schemas.alert import (
     AlertFilterSchema,
     AlertResponse,
-    CreateAlert,
 )
 
 router_alert = APIRouter(tags=["Alertas"], prefix="/alert")
@@ -21,14 +20,6 @@ async def get_filtered_alerts(
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[AlertResponse]]:
     return await AlertController(session).get_filtered_alerts(filters)
-
-
-@router_alert.post("/")
-async def create_alert(
-    alert_data: CreateAlert,
-    session: AsyncSession = Depends(SessionConnection.session),
-) -> BasicResponse[None]:
-    return await AlertController(session).create_alert(alert_data)
 
 
 @router_alert.delete(
