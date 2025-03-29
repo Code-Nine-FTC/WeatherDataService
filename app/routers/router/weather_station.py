@@ -7,7 +7,7 @@ from app.dependency.database import SessionConnection
 from app.modules.basic_response import BasicResponse
 from app.routers.controller.weather_station import WeatherStationController
 from app.schemas.user import UserResponse
-from app.schemas.weather_station import WeatherStationCreate, WeatherStationUpdate
+from app.schemas.weather_station import WeatherStationCreate, WeatherStationResponse, WeatherStationResponseList, WeatherStationUpdate
 
 router = APIRouter(
     tags=["Weather Stations"],
@@ -22,7 +22,7 @@ async def create_station(
     data: WeatherStationCreate = Body(...),
     current_user: UserResponse = Depends(AuthManager.has_authorization),
 ) -> BasicResponse[None]:
-    return await WeatherStationController(session, current_user.id).create_station(
+    return await WeatherStationController(session).create_station(
         data
     )
 
@@ -31,8 +31,7 @@ async def create_station(
 async def get_filtered_stations(
     filters: dict = Body(...),
     session: AsyncSession = Depends(SessionConnection.session),
-    current_user: UserResponse = Depends(AuthManager.has_authorization),
-) -> BasicResponse[None]:
+) -> BasicResponse[WeatherStationResponse]:
     return await WeatherStationController(session).get_stations_by_filters(filters)
 
 
@@ -40,8 +39,7 @@ async def get_filtered_stations(
 async def get_station_by_id(
     station_id: int,
     session: AsyncSession = Depends(SessionConnection.session),
-    current_user: UserResponse = Depends(AuthManager.has_authorization),
-) -> BasicResponse[None]:
+) -> BasicResponse[WeatherStationResponseList]:
     return await WeatherStationController(session).get_stations_by_id(station_id)
 
 
@@ -52,7 +50,7 @@ async def update_station(
     session: AsyncSession = Depends(SessionConnection.session),
     current_user: UserResponse = Depends(AuthManager.has_authorization),
 ) -> BasicResponse[None]:
-    return await WeatherStationController(session, current_user.id).update_station(
+    return await WeatherStationController(session).update_station(
         station_id, data
     )
 
@@ -63,6 +61,6 @@ async def disable_station(
     session: AsyncSession = Depends(SessionConnection.session),
     current_user: UserResponse = Depends(AuthManager.has_authorization),
 ) -> BasicResponse[None]:
-    return await WeatherStationController(session, current_user.id).disable_station(
+    return await WeatherStationController(session).disable_station(
         station_id
     )

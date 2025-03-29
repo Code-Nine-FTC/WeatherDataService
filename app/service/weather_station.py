@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy import select, text
@@ -10,6 +11,7 @@ from ..schemas.weather_station import (
     FilterWeatherStation,
     WeatherStationCreate,
     WeatherStationResponse,
+    WeatherStationResponseList,
     WeatherStationUpdate,
 )
 
@@ -17,7 +19,7 @@ from ..schemas.weather_station import (
 class WeatherStationService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self._parameters = {}
+        self._parameters: dict[int, Any] = {}
 
     async def _get_station_by_id(self, station_id: int) -> WeatherStation:
         result = await self._session.execute(
@@ -28,10 +30,10 @@ class WeatherStationService:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
         return station
 
-    async def _get_parameter(self, parameter_id: int, station_id: int) -> None:
-        query = select(WeatherStation).where(
-            WeatherStation.id == station_id,
-            WeatherStation.parameter_id == parameter_id,
+    async def _get_parameter(self, parameter_id: int, station_id: int) -> Parameter | None:
+        query = select(Parameter).where(
+            Parameter.parameter_type_id == parameter_id,
+            Parameter.station_id == station_id,
         )
         result = await self._session.execute(query)
         parameter = result.scalar()
@@ -59,7 +61,7 @@ class WeatherStationService:
         new_station = WeatherStation(**station_data)
         self._session.add(new_station)
         await self._session.flush()
-        if parameter_types or len(parameter_types) > 0:
+        if parameter_types and len(parameter_types) > 0:
             await self._create_parameter(parameter_types, new_station.id)
         await self._session.commit()
 
@@ -117,10 +119,10 @@ class WeatherStationService:
         stations = result.fetchall()
         return [WeatherStationResponse(**station._asdict()) for station in stations]
 
-    async def get_station_by_id(self, station_id: int) -> WeatherStationResponse:
+    async def get_station_by_id(self, station_id: int) -> WeatherStationResponseList:
         query = select(WeatherStation).where(WeatherStation.id == station_id)
         result = await self._session.execute(query)
         station = result.scalar()
         if not station:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
-        return WeatherStationResponse(**station.__dict__)
+        return WeatherStationResponseList(**station.__dict__)

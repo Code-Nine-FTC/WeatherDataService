@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ParameterTypeResponse(BaseModel):
@@ -18,7 +18,9 @@ class CreateParameterType(BaseModel):
     qnt_decimals: int
     offset: float | None = None
     factor: float | None = None
-    json: dict[str, Any] = {}
+    json: dict[str, Any] = Field(default_factory=dict)
+    create_date: datetime = Field(default_factory=datetime.now)
+    last_update: datetime = Field(default_factory=datetime.now)
 
 
 class FilterParameterType(BaseModel):

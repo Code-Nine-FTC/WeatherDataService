@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.basic_response import BasicResponse
-from app.schemas.weather_station import WeatherStationCreate, WeatherStationUpdate
+from app.schemas.weather_station import WeatherStationCreate, WeatherStationResponse, WeatherStationResponseList, WeatherStationUpdate
 from app.service.weather_station import WeatherStationService
 
 
@@ -74,7 +74,7 @@ class WeatherStationController:
 
     async def get_stations_by_id(
         self, user_id: int
-    ) -> BasicResponse[list[WeatherStationCreate]]:
+    ) -> BasicResponse[WeatherStationResponseList]:
         try:
             stations = await self._service.get_station_by_id(user_id)
             return BasicResponse(data=stations)
@@ -87,8 +87,8 @@ class WeatherStationController:
             )
 
     async def get_stations_by_filters(
-        self, filters: WeatherStationCreate
-    ) -> BasicResponse[list[WeatherStationCreate]]:
+        self, filters: WeatherStationResponse
+    ) -> BasicResponse[WeatherStationResponse]:
         try:
             stations = await self._service.get_stations(filters)
             return BasicResponse(data=stations)
