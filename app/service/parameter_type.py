@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.core.models.db_model import Measures  # Corrigido conforme o erro
+from app.core.models.db_model import Measures, ParameterType  # Corrigido conforme o erro
 from app.schemas.parameter_type import ParameterTypeCreate
 
 
@@ -16,7 +16,7 @@ class ParameterTypeService:
 
         # Verificar se o nome do parâmetro já existe
         existing_parameter = await self._session.execute(
-            select(Measures).filter_by(
+            select(ParameterType).filter_by(
                 name=data.name
             )  # Usando Measures no lugar de ParameterType
         )
@@ -28,7 +28,7 @@ class ParameterTypeService:
             )
 
         # Criação do tipo de parâmetro
-        new_parameter_type = Measures(
+        new_parameter_type = ParameterType(
             **data.dict()
         )  # Usando Measures ao invés de ParameterType
 

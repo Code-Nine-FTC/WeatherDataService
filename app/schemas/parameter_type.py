@@ -1,17 +1,17 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
+from datetime import datetime
 
 from pydantic import BaseModel, Json
 
 
 class ParameterTypeCreate(BaseModel):
     name: str
-    json: Json[Any]  # Usando Json do pydantic para lidar com JSON
+    json: Dict[str, Any]  # Usando Json do pydantic para lidar com JSON
     measure_unit: str
     qnt_decimals: int
     offset: Optional[float] = None
     factor: Optional[float] = None
     create_date: int
-    last_update: int
 
     # Validação para garantir que offset e factor não são ambos nulos
     def validate_offset_factor(
