@@ -8,7 +8,7 @@ from app.schemas.parameter_type import (
     CreateParameterType,
     ParameterTypeResponse,
 )
-from app.service.parameter_type import ParameterTypeService
+from app.service.parameter_type import ParameterTypeService, FilterParameterType
 
 
 class ParameterTypeController:
@@ -36,9 +36,18 @@ class ParameterTypeController:
             )
 
     async def list_parameter_types(
-        self, name: Optional[str] = None, measure_unit: Optional[str] = None
-    ) -> List[ParameterTypeResponse]:
-        return await self._service.list_parameter_types(name, measure_unit)
+        self, filters : FilterParameterType
+    ) -> BasicResponse[list[ParameterTypeResponse]]:
+        try:
+            parameter_types = await self._service.list_parameter_types(filters)
+            return BasicResponse(data=parameter_types)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno ao listar os tipos de parâmetro: {str(e)}",
+            )
 
     async def update_parameter_type(
         self,

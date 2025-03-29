@@ -1,11 +1,11 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.database import SessionConnection
 from app.modules.basic_response import BasicResponse
 from app.routers.controller.parameter_type import ParameterTypeController
-from app.schemas.parameter_type import CreateParameterType
+from app.schemas.parameter_type import CreateParameterType, ParameterTypeResponse, FilterParameterType
 
 router = APIRouter(tags=["Parameter Types"], prefix="/parameter_types")
 
@@ -18,15 +18,14 @@ async def create_parameter_type(
     return await ParameterTypeController(session).create_parameter_type(data)
 
 
-# @router.get("/")
-# async def list_parameter_types(
-#     name: Optional[str] = Query(None),
-#     measure_unit: Optional[str] = Query(None),
-#     session: AsyncSession = Depends(SessionConnection.session),
-# ) -> List[ParameterTypeResponse]:
-#     return await ParameterTypeController(session).list_parameter_types(
-#         name, measure_unit
-#     )
+@router.get("/")
+async def list_parameter_types(
+    filters: FilterParameterType = Query(),
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[list[ParameterTypeResponse]]:
+    return await ParameterTypeController(session).list_parameter_types(
+        filters
+    )
 
 
 # @router.get("/{parameter_type_id}")

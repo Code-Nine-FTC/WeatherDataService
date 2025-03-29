@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, update
+from sqlalchemy import select, update, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import ParameterType
@@ -38,17 +38,28 @@ class ParameterTypeService:
     async def list_parameter_types(
         self, filters: FilterParameterType | None = None
     ) -> List[ParameterTypeResponse]:
-        query = select(ParameterType)
-
-        if filters.name:
-            query = query.where(ParameterType.name == filters.name)
-        if filters.measure_unit:
-            query = query.where(ParameterType.measure_unit == filters.measure_unit)
-
+        query = text(
+            f"""
+            select 
+            pt.id,
+            pt."name",
+            pt.factor,
+            pt."offset" ,
+            pt.measure_unit,
+            pt.qnt_decimals 
+            from parameter_types pt
+            where 1=1
+            {"and pt.name like :name" if filters and filters.name else ""}
+            {"and pt.measure_unit like :measure_unit" if filters and filters.measure_unit else ""}
+    """
+        )
+        if filters and filters.name:
+            query = query.bindparams(name=f"%{filters.name}%")
+        if filters and filters.measure_unit:
+            query = query.bindparams(measure_unit=f"%{filters.measure_unit}%")
         result = await self._session.execute(query)
-        parameter_types = result.scalars().all()
-
-        return [ParameterTypeResponse(**pt.__dict__) for pt in parameter_types]
+        parameter_types = result.fetchall()
+        return [ParameterTypeResponse(**pt._asdict()) for pt in parameter_types]
 
     async def get_parameter_type(
         self, parameter_type_id: int
