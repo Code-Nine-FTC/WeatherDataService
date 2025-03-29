@@ -112,7 +112,15 @@ class WeatherStationService:
             query = query.bindparams(status=filters.status)
         if filters.name:
             query = query.bindparams(name_station=f"%{filters.name}%")
-            
+
         result = await self._session.execute(query)
         stations = result.fetchall()
         return [WeatherStationResponse(**station._asdict()) for station in stations]
+
+    async def get_station_by_id(self, station_id: int) -> WeatherStationResponse:
+        query = select(WeatherStation).where(WeatherStation.id == station_id)
+        result = await self._session.execute(query)
+        station = result.scalar()
+        if not station:
+            raise HTTPException(status_code=404, detail="Estação não encontrada")
+        return WeatherStationResponse(**station.__dict__)

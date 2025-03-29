@@ -27,6 +27,24 @@ async def create_station(
     )
 
 
+@router.get("/filters")
+async def get_filtered_stations(
+    filters: dict = Body(...),
+    session: AsyncSession = Depends(SessionConnection.session),
+    current_user: UserResponse = Depends(AuthManager.has_authorization),
+) -> BasicResponse[None]:
+    return await WeatherStationController(session).get_stations_by_filters(filters)
+
+
+@router.get("/{station_id}")
+async def get_station_by_id(
+    station_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+    current_user: UserResponse = Depends(AuthManager.has_authorization),
+) -> BasicResponse[None]:
+    return await WeatherStationController(session).get_stations_by_id(station_id)
+
+
 @router.patch("/{station_id}")
 async def update_station(
     station_id: int,

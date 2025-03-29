@@ -8,9 +8,8 @@ from app.service.weather_station import WeatherStationService
 
 
 class WeatherStationController:
-    def __init__(self, session: AsyncSession, user_id: int) -> None:
+    def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self._user_id = user_id
         self._service = WeatherStationService(session)
 
     async def create_station(
@@ -67,6 +66,34 @@ class WeatherStationController:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Parâmetros inválidos: {str(e)}",
             )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno: {str(e)}",
+            )
+
+    async def get_stations_by_id(
+        self, user_id: int
+    ) -> BasicResponse[list[WeatherStationCreate]]:
+        try:
+            stations = await self._service.get_station_by_id(user_id)
+            return BasicResponse(data=stations)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro interno: {str(e)}",
+            )
+
+    async def get_stations_by_filters(
+        self, filters: WeatherStationCreate
+    ) -> BasicResponse[list[WeatherStationCreate]]:
+        try:
+            stations = await self._service.get_stations(filters)
+            return BasicResponse(data=stations)
+        except HTTPException as e:
+            raise e
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
