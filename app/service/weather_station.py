@@ -103,18 +103,12 @@ class WeatherStationService:
                 ws.create_date,
                 ws.is_active as status
             from weather_stations ws 
-            where 1=1
-            {"and ws.create_date >= :start_date " if filters.start_date else ""}
-            {"and ws.create_date <= :end_date" if filters.end_date else ""}   
-            {"and ws.uid = :uid " if filters.uid else ""}
-            {"and ws.is_active is :status" if filters.status is not None else ""}
-            {'and ws."name" is like :name_station ' if filters.name else ""}
+            where 1=1  
+            {"and ws.uid = :uid " if filters.uid is not None else ""}
+            {"and ws.is_active = :status" if filters.status is not None else ""}
+            {'and ws."name" like :name_station ' if filters.name is not None else ""}
             """
         )
-        if filters.start_date:
-            query = query.bindparams(start_date=filters.start_date)
-        if filters.end_date:
-            query = query.bindparams(end_date=filters.end_date)
         if filters.uid:
             query = query.bindparams(uid=filters.uid)
         if filters.status is not None:

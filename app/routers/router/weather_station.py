@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.auth import AuthManager
@@ -12,6 +12,7 @@ from app.schemas.weather_station import (
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
+    FilterWeatherStation
 )
 
 router = APIRouter(
@@ -32,9 +33,9 @@ async def create_station(
 
 @router.get("/filters")
 async def get_filtered_stations(
-    filters: dict = Body(...),
+    filters: FilterWeatherStation = Query(),
     session: AsyncSession = Depends(SessionConnection.session),
-) -> BasicResponse[WeatherStationResponse]:
+) -> BasicResponse[list[WeatherStationResponse]]:
     return await WeatherStationController(session).get_stations_by_filters(filters)
 
 

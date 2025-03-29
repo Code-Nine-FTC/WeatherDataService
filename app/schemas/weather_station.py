@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from pydantic import (
     BaseModel,
@@ -44,10 +44,10 @@ class WeatherStationCreate(BaseModel):
 class WeatherStationUpdate(BaseModel):
     name: str | None = None
     uid: str | None = None
-    address: list[str] | None = None
+    address: dict[str, str] | None = None
     latitude: float | None = None
     longitude: float | None = None
-    last_update: datetime = datetime.now()
+    last_update: datetime | None= datetime.now() 
     is_active: bool | None = None
     parameter_types: list[int] | None = None
 
@@ -55,26 +55,21 @@ class WeatherStationUpdate(BaseModel):
 class FilterWeatherStation(BaseModel):
     uid: str | None = None
     name: str | None = None
-    start_date: datetime | None = None
-    end_date: datetime | None = None
     status: bool | None = None
-
-    @model_validator(mode="before")
-    def parse_dates(cls, value) -> dict:
-        if value["start_date"]:
-            value["start_date"] = ConvertDates.datetime_to_unix(value["start_date"])
-        if value["end_date"]:
-            value["end_date"] = ConvertDates.datetime_to_unix(value["end_date"])
-        return value
 
 
 class WeatherStationResponse(BaseModel):
     id: int
     name_station: str
     uid: str
-    address: StationAddress
+    address: dict[str, str]
     create_date: datetime
     status: bool
+
+    @field_validator("create_date", mode="before")
+    def parse_create_date(cls, value: str | datetime) -> datetime:
+        value = ConvertDates.unix_to_datetime(value)
+        return value
 
 
 class WeatherStationResponseList(BaseModel):

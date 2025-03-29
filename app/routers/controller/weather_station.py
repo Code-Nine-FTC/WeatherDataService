@@ -8,6 +8,7 @@ from app.schemas.weather_station import (
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
+    FilterWeatherStation,
 )
 from app.service.weather_station import WeatherStationService
 
@@ -38,17 +39,7 @@ class WeatherStationController:
             await self._service.update_station(station_id, data)
             return BasicResponse(data=None)
         except HTTPException as e:
-            if e.status_code in {400, 403, 404}:
-                raise e
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Erro interno: {str(e)}",
-            )
-        except ValueError as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Parâmetros inválidos: {str(e)}",
-            )
+            raise e
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -78,10 +69,10 @@ class WeatherStationController:
             )
 
     async def get_stations_by_id(
-        self, user_id: int
+        self, station_id: int
     ) -> BasicResponse[WeatherStationResponseList]:
         try:
-            stations = await self._service.get_station_by_id(user_id)
+            stations = await self._service.get_station_by_id(station_id)
             return BasicResponse(data=stations)
         except HTTPException as e:
             raise e
@@ -92,8 +83,8 @@ class WeatherStationController:
             )
 
     async def get_stations_by_filters(
-        self, filters: WeatherStationResponse
-    ) -> BasicResponse[WeatherStationResponse]:
+        self, filters: FilterWeatherStation
+    ) -> BasicResponse[list[WeatherStationResponse]]:
         try:
             stations = await self._service.get_stations(filters)
             return BasicResponse(data=stations)

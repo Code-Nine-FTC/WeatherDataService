@@ -22,7 +22,11 @@ class ConvertDates:
 
     @staticmethod
     def datetime_to_unix(date: datetime) -> int:
-        return int(date.timestamp()) if isinstance(date, datetime) else None
+        if isinstance(date, datetime):
+            if date.tzinfo is not None:
+                date = date.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+            return int(date.timestamp())
+        return None
 
 
 class Singleton(type):
