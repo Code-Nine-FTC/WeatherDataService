@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from app.modules.common import ConvertDates
 
 from pydantic import (
     BaseModel,
     field_validator,
     model_validator,
 )
+
+from app.modules.common import ConvertDates
 
 
 class WeatherStationBase(BaseModel):
@@ -57,6 +58,7 @@ class FilterWeatherStation(BaseModel):
     start_date: datetime | None = None
     end_date: datetime | None = None
     status: bool | None = None
+
     @model_validator(mode="before")
     def parse_dates(cls, value) -> dict:
         if value["start_date"]:
@@ -74,6 +76,7 @@ class WeatherStationResponse(BaseModel):
     create_date: datetime
     status: bool
 
+
 class WeatherStationResponseList(BaseModel):
     id: int
     name: str
@@ -81,5 +84,3 @@ class WeatherStationResponseList(BaseModel):
     address: StationAddress
     create_date: int
     is_active: bool
-
-

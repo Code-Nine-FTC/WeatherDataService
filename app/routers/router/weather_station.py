@@ -7,7 +7,12 @@ from app.dependency.database import SessionConnection
 from app.modules.basic_response import BasicResponse
 from app.routers.controller.weather_station import WeatherStationController
 from app.schemas.user import UserResponse
-from app.schemas.weather_station import WeatherStationCreate, WeatherStationResponse, WeatherStationResponseList, WeatherStationUpdate
+from app.schemas.weather_station import (
+    WeatherStationCreate,
+    WeatherStationResponse,
+    WeatherStationResponseList,
+    WeatherStationUpdate,
+)
 
 router = APIRouter(
     tags=["Weather Stations"],
@@ -22,9 +27,7 @@ async def create_station(
     data: WeatherStationCreate = Body(...),
     current_user: UserResponse = Depends(AuthManager.has_authorization),
 ) -> BasicResponse[None]:
-    return await WeatherStationController(session).create_station(
-        data
-    )
+    return await WeatherStationController(session).create_station(data)
 
 
 @router.get("/filters")
@@ -50,9 +53,7 @@ async def update_station(
     session: AsyncSession = Depends(SessionConnection.session),
     current_user: UserResponse = Depends(AuthManager.has_authorization),
 ) -> BasicResponse[None]:
-    return await WeatherStationController(session).update_station(
-        station_id, data
-    )
+    return await WeatherStationController(session).update_station(station_id, data)
 
 
 @router.patch("/disable/{station_id}")
@@ -61,6 +62,4 @@ async def disable_station(
     session: AsyncSession = Depends(SessionConnection.session),
     current_user: UserResponse = Depends(AuthManager.has_authorization),
 ) -> BasicResponse[None]:
-    return await WeatherStationController(session).disable_station(
-        station_id
-    )
+    return await WeatherStationController(session).disable_station(station_id)

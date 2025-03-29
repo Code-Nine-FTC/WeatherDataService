@@ -30,15 +30,15 @@ class WeatherStationService:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
         return station
 
-    async def _get_parameter(self, parameter_id: int, station_id: int) -> Parameter | None:
+    async def _get_parameter(
+        self, parameter_id: int, station_id: int
+    ) -> Parameter | None:
         query = select(Parameter).where(
             Parameter.parameter_type_id == parameter_id,
             Parameter.station_id == station_id,
         )
         result = await self._session.execute(query)
         parameter = result.scalar()
-        if not parameter:
-            raise HTTPException(status_code=404, detail="Parâmetro não encontrado")
         return parameter
 
     async def _create_parameter(
@@ -49,21 +49,28 @@ class WeatherStationService:
                 parameter_id=parameter_id, station_id=station_id
             )
             if parameter is None:
-                parameter = Parameter(id=parameter_id, station_id=station_id)
+                parameter = Parameter(
+                    parameter_type_id=parameter_id, station_id=station_id
+                )
                 self._session.add(parameter)
                 await self._session.flush()
         await self._session.commit()
 
     async def create_station(self, data: WeatherStationCreate) -> None:
         station_data = data.model_dump()
+        station = await self._get_station_by_uid(station_data["uid"])
+        if station:
+            raise HTTPException(
+                status_code=400, detail="Estação já existe com este UID."
+            )
         parameter_types = station_data.get("parameter_types")
         station_data.pop("parameter_types", None)
         new_station = WeatherStation(**station_data)
         self._session.add(new_station)
         await self._session.flush()
+        await self._session.commit()
         if parameter_types and len(parameter_types) > 0:
             await self._create_parameter(parameter_types, new_station.id)
-        await self._session.commit()
 
     async def update_station(
         self, station_id: int, data: WeatherStationUpdate
@@ -126,3 +133,11 @@ class WeatherStationService:
         if not station:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
         return WeatherStationResponseList(**station.__dict__)
+
+    async def _get_station_by_uid(
+        self, uid: str
+    ) -> WeatherStationResponseList | None:
+        query = select(WeatherStation).where(WeatherStation.uid == uid)
+        result = await self._session.execute(query)
+        station = result.scalar()
+        return WeatherStationResponseList(**station.__dict__) if station else None

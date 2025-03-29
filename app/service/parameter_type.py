@@ -25,7 +25,12 @@ class ParameterTypeService:
             data.offset,
             data.factor,
         )
-        parameter_type = ParameterType(**parameter.__dict__)
+        if parameter:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Tipo de parâmetro já existe.",
+            )
+        parameter_type = ParameterType(**data.model_dump())
         self._session.add(parameter_type)
         await self._session.flush()
         await self._session.commit()
@@ -83,7 +88,7 @@ class ParameterTypeService:
         qnt_decimals: int,
         offset: float | None,
         factor: float | None,
-    ) -> ParameterType:
+    ) -> ParameterType | None:
         query = select(ParameterType).where(
             ParameterType.name == name,
             ParameterType.measure_unit == measure_unit,
@@ -93,9 +98,4 @@ class ParameterTypeService:
         )
         result = await self._session.execute(query)
         parameter_type = result.scalar_one_or_none()
-        if parameter_type is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Tipo de parâmetro não encontrado.",
-            )
         return parameter_type
