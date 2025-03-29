@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +8,7 @@ from app.schemas.parameter_type import (
     CreateParameterType,
     ParameterTypeResponse,
 )
-from app.service.parameter_type import ParameterTypeService, FilterParameterType
+from app.service.parameter_type import FilterParameterType, ParameterTypeService
 
 
 class ParameterTypeController:
@@ -36,7 +36,7 @@ class ParameterTypeController:
             )
 
     async def list_parameter_types(
-        self, filters : FilterParameterType
+        self, filters: FilterParameterType
     ) -> BasicResponse[list[ParameterTypeResponse]]:
         try:
             parameter_types = await self._service.list_parameter_types(filters)

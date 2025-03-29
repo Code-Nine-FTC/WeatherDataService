@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 from pydantic import (
     BaseModel,
     field_validator,
-    model_validator,
 )
 
 from app.modules.common import ConvertDates
@@ -31,6 +30,7 @@ class StationAddress(BaseModel):
     state: str
     country: str
 
+
 class StationAdressUpdate(BaseModel):
     city: str | None = None
     state: str | None = None
@@ -52,7 +52,7 @@ class WeatherStationUpdate(BaseModel):
     address: StationAdressUpdate | None = None
     latitude: float | None = None
     longitude: float | None = None
-    last_update: datetime | None= datetime.now() 
+    last_update: datetime | None = datetime.now()
     is_active: bool | None = None
     parameter_types: list[int] | None = None
 

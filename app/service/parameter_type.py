@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, update, text
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import ParameterType
@@ -51,6 +51,7 @@ class ParameterTypeService:
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
             {"and pt.measure_unit like :measure_unit" if filters and filters.measure_unit else ""}
+
     """
         )
         if filters and filters.name:

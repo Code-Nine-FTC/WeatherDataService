@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 
 from app.core.models.db_model import Alert
-from app.modules.common import ConvertDates
 from app.schemas.alert import (
     AlertFilterSchema,
     AlertResponse,
