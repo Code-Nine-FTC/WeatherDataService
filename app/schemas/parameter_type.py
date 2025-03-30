@@ -37,6 +37,6 @@ class UpdateParameterType(BaseModel):
     qnt_decimals: int | None = None
     offset: float | None = None
     factor: float | None = None
-    json: dict[str, Any] | None = None
+    json_data: dict[str, Any] | None = None
     is_active: bool | None = None
     last_update: datetime = datetime.now()
