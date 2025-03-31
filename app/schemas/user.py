@@ -10,3 +10,9 @@ class UserResponse(BaseModel):
     password: str
     email: str
     last_update: datetime
+
+
+class UserViewResponse(BaseModel):
+    name: str
+    email: str
+    last_update: datetime

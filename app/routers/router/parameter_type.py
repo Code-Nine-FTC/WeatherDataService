@@ -1,56 +1,54 @@
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.database import SessionConnection
-from app.routers.controller.parameter_type_controller import ParameterTypeController
-from app.schemas.parameter_type_schema import ParameterTypeResponse
+from app.modules.basic_response import BasicResponse
+from app.routers.controller.parameter_type import ParameterTypeController
+from app.schemas.parameter_type import (
+    CreateParameterType,
+    FilterParameterType,
+    ParameterTypeResponse,
+    UpdateParameterType,
+)
 
 router = APIRouter(tags=["Parameter Types"], prefix="/parameter_types")
 
 
-@router.get("/", response_model=List[ParameterTypeResponse])
-async def list_parameter_types(
-    name: Optional[str] = Query(None),
-    measure_unit: Optional[str] = Query(None),
+@router.post("/")
+async def create_parameter_type(
+    data: CreateParameterType,
     session: AsyncSession = Depends(SessionConnection.session),
-) -> List[ParameterTypeResponse]:
-    return await ParameterTypeController(session).list_parameter_types(
-        name, measure_unit
-    )
+) -> BasicResponse[None]:
+    return await ParameterTypeController(session).create_parameter_type(data)
 
 
-@router.get("/{parameter_type_id}", response_model=ParameterTypeResponse)
+@router.get("/")
+async def list_parameter_types(
+    filters: FilterParameterType = Query(),
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[list[ParameterTypeResponse]]:
+    return await ParameterTypeController(session).list_parameter_types(filters)
+
+@router.patch("/{parameter_type_id}")
+async def delete_parameter_type(
+    parameter_type_id: int,
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[None]:
+    return await ParameterTypeController(session).disable_parameter_type(parameter_type_id)
+
+@router.get("/{parameter_type_id}")
 async def get_parameter_type(
     parameter_type_id: int,
     session: AsyncSession = Depends(SessionConnection.session),
-) -> ParameterTypeResponse:
-    parameter_type = await ParameterTypeController(session).get_parameter_type(
-        parameter_type_id
-    )
-    if not parameter_type:
-        raise HTTPException(
-            status_code=404, detail="Tipo de parâmetro não encontrado."
-        )
-    return parameter_type
+) -> BasicResponse[ParameterTypeResponse]:
+    return await ParameterTypeController(session).get_parameter_type(
+        parameter_type_id)
 
-
-class ParameterTypeUpdate(BaseModel):
-    name: Optional[str] = None
-    measure_unit: Optional[str] = None
-    qnt_decimals: Optional[int] = None
-    offset: Optional[float] = None
-    factor: Optional[float] = None
-
-
-@router.patch("/{parameter_type_id}")
+@router.patch("/{parameter_type_id}/update")
 async def update_parameter_type(
     parameter_type_id: int,
-    data: ParameterTypeUpdate,
+    data: UpdateParameterType,
     session: AsyncSession = Depends(SessionConnection.session),
-) -> None:
-    await ParameterTypeController(session).update_parameter_type(
-        parameter_type_id, data.dict(exclude_unset=True)
-    )
+) -> BasicResponse[None]:
+    await ParameterTypeController(session).update_parameter_type(parameter_type_id, data)
+    return BasicResponse(data=None)
