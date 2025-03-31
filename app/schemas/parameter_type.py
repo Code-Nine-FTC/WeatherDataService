@@ -11,10 +11,12 @@ class ParameterTypeResponse(BaseModel):
     offset: int | None = None
     factor: int | None = None
     name: str
+    is_active: bool
 
     model_config = {
         "from_attributes": True,
     }
+
 
 
 class CreateParameterType(BaseModel):

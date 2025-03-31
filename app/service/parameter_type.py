@@ -44,9 +44,10 @@ class ParameterTypeService:
             pt.id,
             pt."name",
             pt.factor,
-            pt."offset" ,
+            pt."offset",
             pt.measure_unit,
-            pt.qnt_decimals 
+            pt.qnt_decimals,
+            pt.is_active
             from parameter_types pt
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
