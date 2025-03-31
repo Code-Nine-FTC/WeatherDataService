@@ -1,0 +1,95 @@
+# -*- coding: utf-8 -*-
+from datetime import datetime
+from typing import Any
+from pydantic import (
+    BaseModel,
+    field_validator,
+)
+
+from app.modules.common import ConvertDates
+
+class StationAddress(BaseModel):
+    city: str
+    state: str
+    country: str
+
+class WeatherStationBase(BaseModel):
+    name: str
+    uid: str
+    address: StationAddress
+    latitude: float
+    longitude: float
+    create_date: datetime
+    is_active: bool
+
+    @field_validator("create_date", mode="before")
+    def parse_create_date(cls, value: str | datetime) -> datetime:
+        if isinstance(value, str):
+            return datetime.fromisoformat(value)
+        return value
+
+
+class StationAdressUpdate(BaseModel):
+    city: str | None = None
+    state: str | None = None
+    country: str | None = None
+
+
+class WeatherStationCreate(BaseModel):
+    name: str
+    uid: str
+    latitude: float
+    longitude: float
+    address: StationAddress
+    parameter_types: list[int] = []
+
+
+class WeatherStationUpdate(BaseModel):
+    name: str | None = None
+    uid: str | None = None
+    address: StationAdressUpdate | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    last_update: datetime | None = datetime.now()
+    is_active: bool | None = None
+    parameter_types: list[int] | None = None
+
+
+class FilterWeatherStation(BaseModel):
+    uid: str | None = None
+    name: str | None = None
+    status: bool | None = None
+
+
+class WeatherStationResponse(BaseModel):
+    id: int
+    name_station: str
+    uid: str
+    address: StationAddress | None = None
+    latitude: float
+    longitude: float
+    create_date: datetime
+    status: bool
+    parameters: list[dict[str, Any]] | None = []
+
+    @field_validator("create_date", mode="before")
+    def parse_create_date(cls, value: str | datetime) -> datetime:
+        value = ConvertDates.unix_to_datetime(value)
+        return value
+
+
+class WeatherStationResponseList(BaseModel):
+    id: int
+    name_station: str
+    uid: str
+    address: StationAddress | None = None
+    latitude: float
+    longitude: float
+    create_date: int
+    status: bool
+    parameters: list[dict[str, Any]] | None = []
+
+
+class PameterByStation(BaseModel):
+    id: int
+    name_station: str
