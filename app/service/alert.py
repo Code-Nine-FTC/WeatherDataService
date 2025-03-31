@@ -52,6 +52,7 @@ class AlertService:
             join weather_stations ws
                 on ws.id = p.station_id
             where 1=1
+            and ta.is_active = true
             {"and ta.id = :alert_type_id" if filters and filters.alert_type_id else ""}
             {"and ws.id = :station_id" if filters and filters.station_id else ""}
             """
