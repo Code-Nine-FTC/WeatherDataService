@@ -8,6 +8,7 @@ from app.schemas.parameter_type import (
     CreateParameterType,
     FilterParameterType,
     ParameterTypeResponse,
+    UpdateParameterType,
 )
 
 router = APIRouter(tags=["Parameter Types"], prefix="/parameter_types")
@@ -43,3 +44,11 @@ async def get_parameter_type(
     return await ParameterTypeController(session).get_parameter_type(
         parameter_type_id)
 
+@router.patch("/{parameter_type_id}/update")
+async def update_parameter_type(
+    parameter_type_id: int,
+    data: UpdateParameterType,
+    session: AsyncSession = Depends(SessionConnection.session),
+) -> BasicResponse[None]:
+    await ParameterTypeController(session).update_parameter_type(parameter_type_id, data)
+    return BasicResponse(data=None)

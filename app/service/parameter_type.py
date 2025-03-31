@@ -44,9 +44,10 @@ class ParameterTypeService:
             pt.id,
             pt."name",
             pt.factor,
-            pt."offset" ,
+            pt."offset",
             pt.measure_unit,
-            pt.qnt_decimals 
+            pt.qnt_decimals,
+            pt.is_active
             from parameter_types pt
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
@@ -96,11 +97,18 @@ class ParameterTypeService:
         parameter_type_id: int,
         data: UpdateParameterType,
     ) -> None:
-        parameter_type = await self._search_parameter_type_id(parameter_type_id)
+        parameter_type = await self._session.get(ParameterType, parameter_type_id)
+        if parameter_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
+            )
+
         data = {k: v for k, v in data.model_dump().items() if v is not None}
-        self._session.execute(
+
+        await self._session.execute(
             update(ParameterType)
-            .where(ParameterType.id == parameter_type.id)
+            .where(ParameterType.id == parameter_type_id)
             .values(**data)
         )
         await self._session.commit()
