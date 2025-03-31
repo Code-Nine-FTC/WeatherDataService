@@ -28,7 +28,7 @@ class WeatherStationService:
         )
         station = result.scalar()
         if not station:
-            raise HTTPException(status_code=404, detail="Estação não encontrada")
+            raise HTTPException(status_code=404, detail="Estção não encontrada")
         return station
 
     async def _get_parameter(
@@ -45,16 +45,27 @@ class WeatherStationService:
     async def _create_parameter(
         self, parameter_ids: list[int], station_id: int
     ) -> None:
-        await self._session.execute(
-            delete(Parameter).where(Parameter.station_id == station_id)
-        )
+        existing_query = select(Parameter).where(Parameter.station_id == station_id)
+        result = await self._session.execute(existing_query)
+        existing_parameters = result.scalars().all()
 
-        if parameter_ids:
+        existing_ids = {param.parameter_type_id for param in existing_parameters}
+        new_ids = set(parameter_ids)
+
+        # Remover parâmetros que não estão na nova lista
+        to_remove = [param for param in existing_parameters if param.parameter_type_id not in new_ids]
+        for param in to_remove:
+            await self._session.delete(param)
+
+        # Adicionar novos parâmetros
+        to_add = new_ids - existing_ids
+        for parameter_id in to_add:
             parameter = Parameter(
-                parameter_type_id=parameter_ids[0], station_id=station_id
+                parameter_type_id=parameter_id, station_id=station_id
             )
             self._session.add(parameter)
-            await self._session.flush()
+
+        await self._session.flush()
         await self._session.commit()
 
     async def create_station(self, data: WeatherStationCreate) -> None:
@@ -71,7 +82,7 @@ class WeatherStationService:
         await self._session.flush()
         await self._session.commit()
         if parameter_types and len(parameter_types) > 0:
-            await self._create_parameter(parameter_types[:1], new_station.id)
+            await self._create_parameter(parameter_types, new_station.id)
 
     async def update_station(self, station_id: int, data: WeatherStationUpdate) -> None:
         station = await self._get_station_by_id(station_id)
@@ -79,8 +90,8 @@ class WeatherStationService:
 
         if "parameter_types" in station_data:
             parameter_ids = station_data["parameter_types"]
-            if isinstance(parameter_ids, list) and len(parameter_ids) > 0:
-                await self._create_parameter(parameter_ids[:1], station_id)
+            if isinstance(parameter_ids, list):
+                await self._create_parameter(parameter_ids, station_id)
             station_data.pop("parameter_types", None)
 
         if "address" in station_data:
@@ -131,12 +142,13 @@ class WeatherStationService:
                 (SELECT JSONB_AGG(
                     JSONB_BUILD_OBJECT(
                         'parameter_id', p.id,
+                        'parameter_type_id', p.parameter_type_id,
                         'name_parameter', pt.name
                     )
                 )
                 FROM parameters p
                 join parameter_types pt
-                on pt.id = p.id
+                on pt.id = p.parameter_type_id
                 WHERE p.station_id::BIGINT = ws.id),
                 '[]'::JSONB
             ) AS parameters
@@ -171,18 +183,19 @@ class WeatherStationService:
                 ws.create_date,
                 ws.is_active AS status,
                 COALESCE(
-                    (SELECT JSONB_AGG(
-                        JSONB_BUILD_OBJECT(
-                        'parameter_type_id', pt.id,
+                (SELECT JSONB_AGG(
+                    JSONB_BUILD_OBJECT(
+                        'parameter_id', p.id,
+                        'parameter_type_id', p.parameter_type_id,
                         'name_parameter', pt.name
-                        )
-                    ) 
-                    FROM parameters p  
-                    join parameter_types pt 
-                        on pt.id = p.parameter_type_id
-                    WHERE p.station_id::BIGINT = ws.id),  
-                    '[]'::JSONB
-                    ) AS parameters 
+                    )
+                ) 
+                FROM parameters p  
+                join parameter_types pt 
+                on pt.id = p.parameter_type_id
+                WHERE p.station_id::BIGINT = ws.id),  
+                '[]'::JSONB
+            ) AS parameters   
             FROM weather_stations ws
             where 1 = 1
             and ws.id = :station_id
