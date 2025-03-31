@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import select, text, update
+from sqlalchemy import select, text, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.models.db_model import Parameter, WeatherStation
@@ -45,16 +45,16 @@ class WeatherStationService:
     async def _create_parameter(
         self, parameter_ids: list[int], station_id: int
     ) -> None:
-        for parameter_id in parameter_ids:
-            parameter = await self._get_parameter(
-                parameter_id=parameter_id, station_id=station_id
+        await self._session.execute(
+            delete(Parameter).where(Parameter.station_id == station_id)
+        )
+
+        if parameter_ids:
+            parameter = Parameter(
+                parameter_type_id=parameter_ids[0], station_id=station_id
             )
-            if parameter is None:
-                parameter = Parameter(
-                    parameter_type_id=parameter_id, station_id=station_id
-                )
-                self._session.add(parameter)
-                await self._session.flush()
+            self._session.add(parameter)
+            await self._session.flush()
         await self._session.commit()
 
     async def create_station(self, data: WeatherStationCreate) -> None:
@@ -71,23 +71,25 @@ class WeatherStationService:
         await self._session.flush()
         await self._session.commit()
         if parameter_types and len(parameter_types) > 0:
-            await self._create_parameter(parameter_types, new_station.id)
+            await self._create_parameter(parameter_types[:1], new_station.id)
 
-    async def update_station(
-        self, station_id: int, data: WeatherStationUpdate
-    ) -> None:
+    async def update_station(self, station_id: int, data: WeatherStationUpdate) -> None:
         station = await self._get_station_by_id(station_id)
-
         station_data = data.model_dump(exclude_unset=True)
 
         if "parameter_types" in station_data:
-            await self._create_parameter(station_data["parameter_types"], station_id)
+            parameter_ids = station_data["parameter_types"]
+            if isinstance(parameter_ids, list) and len(parameter_ids) > 0:
+                await self._create_parameter(parameter_ids[:1], station_id)
             station_data.pop("parameter_types", None)
 
-        station_data.pop("address", None)
+        if "address" in station_data:
+            current_address = station.address or {}
+            updated_address = station_data.pop("address")
+            current_address.update(updated_address)
+            station_data["address"] = current_address
 
         if station_data:
-
             await self._session.execute(
                 update(WeatherStation)
                 .where(WeatherStation.id == station_id)
@@ -169,18 +171,18 @@ class WeatherStationService:
                 ws.create_date,
                 ws.is_active AS status,
                 COALESCE(
-                (SELECT JSONB_AGG(
-                    JSONB_BUILD_OBJECT(
-                        'parameter_id', p.id,
+                    (SELECT JSONB_AGG(
+                        JSONB_BUILD_OBJECT(
+                        'parameter_type_id', pt.id,
                         'name_parameter', pt.name
-                    )
-                ) 
-                FROM parameters p  
-                join parameter_types pt 
-                on pt.id = p.id
-                WHERE p.station_id::BIGINT = ws.id),  
-                '[]'::JSONB
-            ) AS parameters   
+                        )
+                    ) 
+                    FROM parameters p  
+                    join parameter_types pt 
+                        on pt.id = p.parameter_type_id
+                    WHERE p.station_id::BIGINT = ws.id),  
+                    '[]'::JSONB
+                    ) AS parameters 
             FROM weather_stations ws
             where 1 = 1
             and ws.id = :station_id

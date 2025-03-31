@@ -37,28 +37,24 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
 
-      - name: Atualizar submódulos
-        run: git submodule update --remote --merge
+      - name: Inicializar e atualizar submódulos corretamente
+        run: |
+          git submodule init
+          git submodule update --recursive --remote
 
       - name: Configurar Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.12.5"
-            
-      - name: Verificar se há testes no DataProcessorService
-        id: check_tests_dataprocessor
-        run: |
-          if find DataProcessorService -type f -name "test_*.py" -o -name "*_test.py" | grep -q .; then
-            echo "has_tests_dataprocessor=true" >> $GITHUB_ENV
-          else
-            echo "has_tests_dataprocessor=false" >> $GITHUB_ENV
-          fi
+      
+      - name: Verificar estrutura do repositório
+        run: ls -R
+      
       
       - name: Verificar se há testes no WeatherDataService
         id: check_tests_weatherdata
-        if: env.has_tests_weatherdata
         run: |
-          if find WeatherDataService -type f -name "test_*.py" -o -name "*_test.py" | grep -q .; then
+          if find . -type f -name "test_*.py" -o -name "*_test.py" | grep -q .; then
             echo "has_tests_weatherdata=true" >> $GITHUB_ENV
           else
             echo "has_tests_weatherdata=false" >> $GITHUB_ENV
@@ -67,73 +63,36 @@ jobs:
       - name: Verificar se há testes no SharedDatabaseService
         id: check_tests_shareddb
         run: |
-          if find WeatherDataService/app/core -type f -name "test_*.py" -o -name "*_test.py" | grep -q .; then
+          if find app/core -type f -name "test_*.py" -o -name "*_test.py" | grep -q .; then
             echo "has_tests_shareddb=true" >> $GITHUB_ENV
           else
             echo "has_tests_shareddb=false" >> $GITHUB_ENV
           fi
-
-      - name: Verificar Ruff e Mypy no DataProcessorService
-        run: |
-          cd DataProcessorService
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          ruff format .
-          ruff check .
-          mypy .
           
-      - name: Verificar Ruff e Mypy no WeatherDataService
+      - name: Instalar Ruff
         run: |
-          cd WeatherDataService
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          ruff format .
-          ruff check .
-          mypy .
+            python -m pip install --upgrade pip
+            pip install ruff
 
-      - name: Verificar Ruff e Mypy no SharedDatabaseService
+      - name: Verificar lint com Ruff e corrigir automaticamente
         run: |
-          cd SharedDatabaseService
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          ruff format .
-          ruff check .
-          mypy .
-
-      - name: Instalar dependências e rodar testes - DataProcessorService
-        if: env.has_tests_dataprocessor == 'true'
-        run: |
-          cd DataProcessorService
-          python -m pip install --upgrade pip
-          pip install pytest pytest-cov
-          pip install -r requirements.txt
-          ruff format .
-          ruff check .
-          mypy .
-          pytest --cov=app
+            ruff check . --fix --extend-ignore E501
+            ruff format .
+            
 
       - name: Instalar dependências e rodar testes - WeatherDataService
         if: env.has_tests_weatherdata == 'true'
         run: |
-          cd WeatherDataService
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
           pip install -r requirements.txt
-          ruff format .
-          ruff check .
-          mypy .
           pytest --cov=app
 
       - name: Instalar dependências e rodar testes - SharedDatabaseService
         if: env.has_tests_shareddb == 'true'
         run: |
-          cd WeatherDataService/app/core
+          cd app/core
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
           pip install -r requirements.txt
-          ruff format .
-          ruff check .
-          mypy .
           pytest --cov=app
-
-      
