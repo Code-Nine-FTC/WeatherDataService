@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from typing import Any
+
 from pydantic import (
     BaseModel,
     field_validator,
@@ -8,10 +9,12 @@ from pydantic import (
 
 from app.modules.common import ConvertDates
 
+
 class StationAddress(BaseModel):
     city: str
     state: str
     country: str
+
 
 class WeatherStationBase(BaseModel):
     name: str
@@ -68,14 +71,13 @@ class WeatherStationResponse(BaseModel):
     address: StationAddress | None = None
     latitude: float
     longitude: float
-    create_date: datetime
+    create_date: datetime | int
     status: bool
     parameters: list[dict[str, Any]] | None = []
 
     @field_validator("create_date", mode="before")
-    def parse_create_date(cls, value: str | datetime) -> datetime:
-        value = ConvertDates.unix_to_datetime(value)
-        return value
+    def parse_create_date(cls, value: int) -> datetime:
+        return ConvertDates.unix_to_datetime(value)
 
 
 class WeatherStationResponseList(BaseModel):

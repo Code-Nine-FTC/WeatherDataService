@@ -15,13 +15,11 @@ class AlertResponse(BaseModel):
     measure_value: str
     type_alert_name: str
     station_name: str
-    create_date: datetime | int
+    create_date: int
 
     @field_validator("create_date", mode="before")
-    def parse_create_date(cls, value) -> datetime:
-        return (
-            ConvertDates.unix_to_datetime(value) if isinstance(value, int) else value
-        )
+    def parse_create_date(cls, value: int) -> datetime:
+        return ConvertDates.unix_to_datetime(value) if isinstance(value, int) else value
 
 
 class AlertFilterSchema(BaseModel):

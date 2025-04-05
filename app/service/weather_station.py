@@ -9,11 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..core.models.db_model import Parameter, WeatherStation
 from ..schemas.weather_station import (
     FilterWeatherStation,
+    PameterByStation,
     WeatherStationCreate,
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation
 )
 
 
@@ -31,28 +31,21 @@ class WeatherStationService:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
         return station
 
-    async def _get_parameter(
-        self, parameter_id: int, station_id: int
-    ) -> Parameter | None:
+    async def _get_parameter(self, parameter_id: int, station_id: int) -> Parameter | None:
         query = select(Parameter).where(
             Parameter.parameter_type_id == parameter_id,
             Parameter.station_id == station_id,
         )
         result = await self._session.execute(query)
-        parameter = result.scalar()
-        return parameter
+        return result.scalar()
 
-    async def _create_parameter(
-        self, parameter_ids: list[int], station_id: int
-    ) -> None:
+    async def _create_parameter(self, parameter_ids: list[int], station_id: int) -> None:
         for parameter_id in parameter_ids:
             parameter = await self._get_parameter(
                 parameter_id=parameter_id, station_id=station_id
             )
             if parameter is None:
-                parameter = Parameter(
-                    parameter_type_id=parameter_id, station_id=station_id
-                )
+                parameter = Parameter(parameter_type_id=parameter_id, station_id=station_id)
                 self._session.add(parameter)
                 await self._session.flush()
         await self._session.commit()
@@ -61,9 +54,7 @@ class WeatherStationService:
         station_data = data.model_dump()
         station = await self._get_station_by_uid(station_data["uid"])
         if station:
-            raise HTTPException(
-                status_code=400, detail="Estação já existe com este UID."
-            )
+            raise HTTPException(status_code=400, detail="Estação já existe com este UID.")
         parameter_types = station_data.get("parameter_types")
         station_data.pop("parameter_types", None)
         new_station = WeatherStation(**station_data)
@@ -73,10 +64,8 @@ class WeatherStationService:
         if parameter_types and len(parameter_types) > 0:
             await self._create_parameter(parameter_types, new_station.id)
 
-    async def update_station(
-        self, station_id: int, data: WeatherStationUpdate
-    ) -> None:
-        station = await self._get_station_by_id(station_id)
+    async def update_station(self, station_id: int, data: WeatherStationUpdate) -> None:
+        await self._get_station_by_id(station_id)
 
         station_data = data.model_dump(exclude_unset=True)
 
@@ -87,7 +76,6 @@ class WeatherStationService:
         station_data.pop("address", None)
 
         if station_data:
-
             await self._session.execute(
                 update(WeatherStation)
                 .where(WeatherStation.id == station_id)
@@ -116,7 +104,7 @@ class WeatherStationService:
     ) -> list[WeatherStationResponse]:
         query = text(
             f"""
-            SELECT 
+            SELECT
                 ws.id,
                 ws."name" AS name_station,
                 ws.uid,
@@ -158,10 +146,10 @@ class WeatherStationService:
 
     async def get_station_by_id(self, station_id: int) -> WeatherStationResponseList:
         query = text(
-            f"""
-            SELECT 
+            """
+            SELECT
                 ws.id,
-                ws."name" AS name_station, 
+                ws."name" AS name_station,
                 ws.uid,
                 ws.address,
                 ws.latitude,
@@ -174,13 +162,13 @@ class WeatherStationService:
                         'parameter_id', p.id,
                         'name_parameter', pt.name
                     )
-                ) 
-                FROM parameters p  
-                join parameter_types pt 
+                )
+                FROM parameters p
+                join parameter_types pt
                 on pt.id = p.id
-                WHERE p.station_id::BIGINT = ws.id),  
+                WHERE p.station_id::BIGINT = ws.id),
                 '[]'::JSONB
-            ) AS parameters   
+            ) AS parameters
             FROM weather_stations ws
             where 1 = 1
             and ws.id = :station_id
@@ -192,9 +180,7 @@ class WeatherStationService:
             raise HTTPException(status_code=404, detail="Estação não encontrada")
         return WeatherStationResponseList(**station._asdict())
 
-    async def _get_station_by_uid(
-        self, uid: str
-    ) -> WeatherStationResponseList | None:
+    async def _get_station_by_uid(self, uid: str) -> WeatherStationResponseList | None:
         query = select(WeatherStation).where(WeatherStation.uid == uid)
         result = await self._session.execute(query)
         station = result.scalar()
@@ -202,15 +188,15 @@ class WeatherStationService:
 
     async def get_station_by_parameter(self, parmater_type_id: int) -> list[PameterByStation]:
         query = text(
-            f"""
-            select 
+            """
+            select
                 p.id,
                 ws.name as name_station
-            from weather_stations ws 
-            join parameters p 
-                on ws.id = p.station_id 
-            join parameter_types pt 
-                on p.parameter_type_id = pt.id 
+            from weather_stations ws
+            join parameters p
+                on ws.id = p.station_id
+            join parameter_types pt
+                on p.parameter_type_id = pt.id
             where pt.id = :parameter_type_id
             and ws.is_active = true
             """

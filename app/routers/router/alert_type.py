@@ -12,8 +12,11 @@ from app.schemas.alert_type_schema import (
     AlertTypeUpdate,
 )
 
-router = APIRouter(tags=["Tipos de alerta"], prefix="/alert_type", dependencies=[Depends(AuthManager.has_authorization)])
-
+router = APIRouter(
+    tags=["Tipos de alerta"],
+    prefix="/alert_type",
+    dependencies=[Depends(AuthManager.has_authorization)],
+)
 
 
 @router.post("/")
@@ -48,9 +51,7 @@ async def update_alert_type(
     alert_type_data: AlertTypeUpdate,
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[None]:
-    return await AlertTypeController(session).update_alert_type(
-        alert_type_id, alert_type_data
-    )
+    return await AlertTypeController(session).update_alert_type(alert_type_id, alert_type_data)
 
 
 dependencies = ([Depends(AuthManager.has_authorization)],)

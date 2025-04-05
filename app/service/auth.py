@@ -23,8 +23,6 @@ class AuthService:
         if not user or not self.__pwd_manager.verify_password(
             form_data.password, user.password
         ):
-            raise HTTPException(
-                status_code=400, detail="Nome de usuário ou senha incorretos"
-            )
+            raise HTTPException(status_code=400, detail="Nome de usuário ou senha incorretos")
         access_token = self.__token_manager.create_access_token(user)
         return Token(access_token=access_token, token_type="bearer")

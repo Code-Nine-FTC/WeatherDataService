@@ -1,15 +1,17 @@
 from http import HTTPStatus
 from unittest.mock import MagicMock
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app
+from app.routers.controller.alert_type import AlertTypeController
 from app.schemas.alert_type_schema import AlertTypeCreate, AlertTypeUpdate
 from app.service.alert_type import AlertTypeService
-from app.routers.controller.alert_type import AlertTypeController
 
 client = TestClient(app)
+
 
 @pytest.fixture
 def mock_session():
@@ -24,7 +26,7 @@ def valid_alert_data():
         "name": "High Temperature",
         "value": 50,
         "math_signal": "greater_than",
-        "status": "active"
+        "status": "active",
     }
 
 

@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+
 from app.core.models.db_model import ParameterType
 from app.schemas.parameter_type import (
     CreateParameterType,
@@ -40,7 +41,7 @@ class ParameterTypeService:
     ) -> List[ParameterTypeResponse]:
         query = text(
             f"""
-            select 
+            select
             pt.id,
             pt."name",
             pt.factor,
@@ -51,7 +52,11 @@ class ParameterTypeService:
             from parameter_types pt
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
-            {"and pt.measure_unit like :measure_unit" if filters and filters.measure_unit else ""}
+            {
+                "and pt.measure_unit like :measure_unit"
+                if filters and filters.measure_unit
+                else ""
+            }
             {"and pt.is_active is :is_active" if filters and filters.is_active else ""}
     """
         )
@@ -65,10 +70,8 @@ class ParameterTypeService:
         result = await self._session.execute(query)
         parameter_types = result.fetchall()
         return [ParameterTypeResponse(**pt._asdict()) for pt in parameter_types]
-    
-    async def delete_parameter_type(
-        self, parameter_type_id: int
-    ) -> None:
+
+    async def delete_parameter_type(self, parameter_type_id: int) -> None:
         parameter_type = await self._search_parameter_type_id(parameter_type_id)
         await self._session.execute(
             update(ParameterType)
@@ -77,9 +80,7 @@ class ParameterTypeService:
         )
         await self._session.commit()
 
-    async def get_parameter_type(
-        self, parameter_type_id: int
-    ) -> ParameterTypeResponse:
+    async def get_parameter_type(self, parameter_type_id: int) -> ParameterTypeResponse:
         # parameter_type = await self._search_parameter_type_id(parameter_type_id)
         parameter_type = await self._session.get(ParameterType, parameter_type_id)
         if parameter_type is None:
@@ -87,10 +88,8 @@ class ParameterTypeService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
             )
-        
-        return ParameterTypeResponse.model_validate(
-            parameter_type, from_attributes=True
-        )
+
+        return ParameterTypeResponse.model_validate(parameter_type, from_attributes=True)
 
     async def update_parameter_type(
         self,
@@ -104,21 +103,19 @@ class ParameterTypeService:
                 detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
             )
 
-        data = {k: v for k, v in data.model_dump().items() if v is not None}
+        data_update = {k: v for k, v in data.model_dump().items() if v is not None}
 
         await self._session.execute(
             update(ParameterType)
             .where(ParameterType.id == parameter_type_id)
-            .values(**data)
+            .values(**data_update)
         )
         await self._session.commit()
 
-    async def _search_parameter_type_id(
-        self, parameter_type_id: int
-    ) -> ParameterType:
-        query = text(
-            f"SELECT * FROM parameter_types WHERE id = :parameter_type_id"
-        ).bindparams(parameter_type_id=parameter_type_id)
+    async def _search_parameter_type_id(self, parameter_type_id: int) -> ParameterType:
+        query = text("SELECT * FROM parameter_types WHERE id = :parameter_type_id").bindparams(
+            parameter_type_id=parameter_type_id
+        )
         result = await self._session.execute(query)
         parameter_type = result.fetchone()
         if parameter_type is None:
@@ -144,5 +141,4 @@ class ParameterTypeService:
             ParameterType.factor == factor,
         )
         result = await self._session.execute(query)
-        parameter_type = result.scalar_one_or_none()
-        return parameter_type
+        return result.scalar_one_or_none()

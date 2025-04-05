@@ -6,9 +6,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app
-from app.schemas.alert import AlertResponse, AlertFilterSchema
+from app.routers.controller.alert import AlertController
+from app.schemas.alert import AlertFilterSchema, AlertResponse
 from app.service.alert import AlertService
-from app.routers.controller.alert import  AlertController
 
 client = TestClient(app)
 

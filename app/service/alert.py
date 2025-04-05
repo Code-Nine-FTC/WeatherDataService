@@ -16,9 +16,7 @@ class AlertService:
         self._session = session
 
     async def delete_alert(self, id_alert: int) -> None:
-        result = await self._session.execute(
-            select(Alert).where(Alert.id == id_alert)
-        )
+        result = await self._session.execute(select(Alert).where(Alert.id == id_alert))
         alert = result.scalars().first()
         if alert is None:
             raise HTTPException(
@@ -59,7 +57,7 @@ class AlertService:
         )
         if filters and filters.alert_type_id:
             query = query.bindparams(alert_type_id=filters.alert_type_id)
-        if filters.station_id:
+        if filters and filters.station_id:
             query = query.bindparams(station_id=filters.station_id)
 
         result = await self._session.execute(query)
