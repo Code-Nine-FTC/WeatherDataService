@@ -1,9 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from app import app
-from app.schemas.alert import AlertFilterSchema, AlertResponse
-from tests.fixtures.fixture_user import fake_user
-from app.modules.security import TokenManager
 
 
 class TestAlert:

@@ -1,9 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from app import app
-from app.core.models.db_model import User
-from app.modules.security import TokenManager
-from tests.fixtures.fixture_user import fake_user
 
 
 class TestStation:

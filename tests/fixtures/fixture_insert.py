@@ -1,8 +1,10 @@
 # fixture do alert
+from datetime import datetime
+
 import pytest
+
 from app import db
 from app.routers import Alert, AlertType, Station
-from datetime import datetime
 
 
 @pytest.fixture(autouse=True)
@@ -37,9 +39,8 @@ def setup_alert_data():
 
 
 import pytest
-from app import db
+
 from app.routers import ParameterType
-from datetime import datetime
 
 
 @pytest.fixture(autouse=True)
@@ -64,9 +65,6 @@ def setup_parameter_type():
 
 # fixture do station
 import pytest
-from app import db
-from app.routers import Station, ParameterType
-from datetime import datetime
 
 
 @pytest.fixture(autouse=True)
@@ -113,9 +111,8 @@ def setup_station():
 
 # fixture do alert_type
 import pytest
-from app import db
-from app.routers import AlertType, Parameter
-from datetime import datetime
+
+from app.routers import Parameter
 
 
 @pytest.fixture(autouse=True)

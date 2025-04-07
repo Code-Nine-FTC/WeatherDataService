@@ -1,15 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from app import app
-from app.schemas.parameter_type import (
-    CreateParameterType,
-    UpdateParameterType,
-    FilterParameterType,
-)
-from app.service.parameter_type import ParameterTypeService
-from unittest.mock import patch
-from tests.fixtures.fixture_user import fake_user
-from app.modules.security import TokenManager
 
 
 class TestParameterType:
