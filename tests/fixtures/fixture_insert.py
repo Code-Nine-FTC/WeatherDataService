@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 
 from app import db
-from app.routers import Alert, AlertType, Station
+from app.routers import Alert, AlertType, Parameter, ParameterType, Station
 
 
 @pytest.fixture(autouse=True)
@@ -35,14 +35,8 @@ def setup_alert_data():
     db.session.delete(alert_type)
     db.session.commit()
 
-    # fixture parameter
 
-
-import pytest
-
-from app.routers import ParameterType
-
-
+# fixture parameter_type
 @pytest.fixture(autouse=True)
 def setup_parameter_type():
     parameter_type_data = {
@@ -63,10 +57,7 @@ def setup_parameter_type():
     db.session.commit()
 
 
-# fixture do station
-import pytest
-
-
+# fixture station
 @pytest.fixture(autouse=True)
 def setup_station():
     parameter_type_1 = ParameterType(
@@ -109,12 +100,7 @@ def setup_station():
     db.session.commit()
 
 
-# fixture do alert_type
-import pytest
-
-from app.routers import Parameter
-
-
+# fixture alert_type
 @pytest.fixture(autouse=True)
 def setup_alert_type():
     parameter = Parameter(

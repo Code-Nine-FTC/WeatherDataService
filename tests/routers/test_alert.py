@@ -1,6 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
 
+# Definindo constantes para os códigos de status HTTP
+HTTP_STATUS_OK = 200
+HTTP_STATUS_NOT_FOUND = 404
+
 
 class TestAlert:
     @pytest.fixture(autouse=True)
@@ -12,7 +16,7 @@ class TestAlert:
 
         response = self.client.get("/alert/all", params=filters)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         data = response.json()["data"]
         assert isinstance(data, list)
         if len(data) > 0:
@@ -26,7 +30,7 @@ class TestAlert:
         alert_id = 1
         response = self.client.get(f"/alert/{alert_id}")
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         data = response.json()["data"]
         assert "id" in data
         assert "measure_value" in data
@@ -38,13 +42,13 @@ class TestAlert:
         alert_id = 1
         response = self.client.delete(f"/alert/{alert_id}")
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
 
     def test_get_filtered_alerts_no_filters(self):
         response = self.client.get("/alert/all")
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         data = response.json()["data"]
         assert isinstance(data, list)
         if len(data) > 0:
@@ -58,12 +62,12 @@ class TestAlert:
         alert_id = 999
         response = self.client.get(f"/alert/{alert_id}")
 
-        assert response.status_code == 404
+        assert response.status_code == HTTP_STATUS_NOT_FOUND
         assert response.json()["detail"] == f"Alerta com a ID {alert_id} não encontrado."
 
     def test_delete_alert_not_found(self):
         alert_id = 999
         response = self.client.delete(f"/alert/{alert_id}")
 
-        assert response.status_code == 404
+        assert response.status_code == HTTP_STATUS_NOT_FOUND
         assert response.json()["detail"] == f"Alerta com a ID {alert_id} não encontrado."

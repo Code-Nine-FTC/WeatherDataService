@@ -1,6 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
 
+# Definindo constantes para os códigos de status HTTP
+HTTP_STATUS_OK = 200
+HTTP_STATUS_BAD_REQUEST = 400
+
 
 class TestParameterType:
     @pytest.fixture(autouse=True)
@@ -18,7 +22,7 @@ class TestParameterType:
 
         response = self.client.post("/parameter_types/", json=data)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
 
     def test_update_parameter_type(self):
@@ -33,7 +37,7 @@ class TestParameterType:
 
         response = self.client.patch(f"/parameter_types/{parameter_type_id}/update", json=data)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
 
     def test_list_parameter_types(self):
@@ -41,7 +45,7 @@ class TestParameterType:
 
         response = self.client.get("/parameter_types/", params=filters)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         data = response.json()["data"]
         assert isinstance(data, list)
         if len(data) > 0:
@@ -52,14 +56,14 @@ class TestParameterType:
         parameter_type_id = 1
         response = self.client.patch(f"/parameter_types/{parameter_type_id}")
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
 
     def test_get_parameter_type_by_id(self):
         parameter_type_id = 1
         response = self.client.get(f"/parameter_types/{parameter_type_id}")
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         data = response.json()["data"]
         assert data["id"] == parameter_type_id
         assert data["name"] == "Temperatura"
@@ -69,7 +73,7 @@ class TestParameterType:
 
         response = self.client.get("/parameter_types/", params=filters)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         data = response.json()["data"]
         assert isinstance(data, list)
         if len(data) > 0:
@@ -86,9 +90,9 @@ class TestParameterType:
         }
 
         response = self.client.post("/parameter_types/", json=data)
-        assert response.status_code == 200
+        assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
 
         response = self.client.post("/parameter_types/", json=data)
-        assert response.status_code == 400
+        assert response.status_code == HTTP_STATUS_BAD_REQUEST
         assert response.json()["detail"] == "Tipo de parâmetro já existe."
