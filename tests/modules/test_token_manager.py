@@ -1,6 +1,8 @@
-import pytest
-import jwt
 from datetime import datetime
+
+import jwt
+import pytest
+
 from app.modules.security import TokenManager
 from app.schemas.user import UserResponse
 
@@ -14,7 +16,7 @@ async def test_token_contains_user_id():
         is_adm=False,
         is_viewer=True,
         password="hashed_password_123",
-        last_update=datetime.utcnow()
+        last_update=datetime.utcnow(),
     )
 
     token_manager = TokenManager()
