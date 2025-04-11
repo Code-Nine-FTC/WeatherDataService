@@ -121,7 +121,7 @@ class WeatherStationService:
         station = await self._get_station_by_id(station_id)
 
         station.last_update = datetime.now()  # type: ignore
-        station.is_active = False
+        station.is_active = not station.is_active
         await self._session.commit()
 
     async def get_stations(
@@ -137,7 +137,7 @@ class WeatherStationService:
                 ws.latitude,
                 ws.longitude,
                 ws.create_date,
-                ws.is_active AS status,
+                ws.is_active,
                 COALESCE(
                 (SELECT JSONB_AGG(
                     JSONB_BUILD_OBJECT(
@@ -155,14 +155,14 @@ class WeatherStationService:
             FROM weather_stations ws
             where 1 = 1
             {"and ws.uid = :uid " if filters.uid is not None else ""}
-            {"and ws.is_active = :status" if filters.status is not None else ""}
+            {"and ws.is_active = :is_active" if filters.is_active is not None else ""}
             {'and ws."name" like :name_station ' if filters.name is not None else ""}
             """
         )
         if filters.uid:
             query = query.bindparams(uid=filters.uid)
-        if filters.status is not None:
-            query = query.bindparams(status=filters.status)
+        if filters.is_active is not None:
+            query = query.bindparams(is_active=filters.is_active)
         if filters.name:
             query = query.bindparams(name_station=f"%{filters.name}%")
 
@@ -181,7 +181,7 @@ class WeatherStationService:
                 ws.latitude,
                 ws.longitude,
                 ws.create_date,
-                ws.is_active AS status,
+                ws.is_active,
                 COALESCE(
                 (SELECT JSONB_AGG(
                     JSONB_BUILD_OBJECT(
