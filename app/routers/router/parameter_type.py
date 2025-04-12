@@ -52,5 +52,6 @@ async def update_parameter_type(
     data: UpdateParameterType,
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[None]:
-    await ParameterTypeController(session).update_parameter_type(parameter_type_id, data)
-    return BasicResponse(data=None)
+    return await ParameterTypeController(session).update_parameter_type(
+        parameter_type_id, data
+    )

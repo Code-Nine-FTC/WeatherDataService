@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 class ParameterTypeResponse(BaseModel):
     id: int
+    json: dict[str, Any] = {}
     measure_unit: str
     qnt_decimals: int
     offset: int | None = None
@@ -28,8 +29,7 @@ class CreateParameterType(BaseModel):
 
 class FilterParameterType(BaseModel):
     name: str | None = None
-    measure_unit: str | None = None
-    is_active: bool | None = None
+    is_active: bool | None = True
 
 
 class UpdateParameterType(BaseModel):

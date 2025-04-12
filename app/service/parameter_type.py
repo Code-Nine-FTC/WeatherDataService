@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, text, update
@@ -38,12 +37,13 @@ class ParameterTypeService:
 
     async def list_parameter_types(
         self, filters: FilterParameterType | None = None
-    ) -> List[ParameterTypeResponse]:
+    ) -> list[ParameterTypeResponse]:
         query = text(
             f"""
             select
             pt.id,
             pt."name",
+            pt."json",
             pt.factor,
             pt."offset",
             pt.measure_unit,
@@ -53,18 +53,15 @@ class ParameterTypeService:
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
             {
-                "and pt.measure_unit like :measure_unit"
-                if filters and filters.measure_unit
+                "and pt.is_active = :is_active"
+                if filters and filters.is_active is not None
                 else ""
             }
-            {"and pt.is_active is :is_active" if filters and filters.is_active else ""}
     """
         )
         if filters and filters.name:
             query = query.bindparams(name=f"%{filters.name}%")
-        if filters and filters.measure_unit:
-            query = query.bindparams(measure_unit=f"%{filters.measure_unit}%")
-        if filters and filters.is_active:
+        if filters and filters.is_active is not None:
             query = query.bindparams(is_active=filters.is_active)
 
         result = await self._session.execute(query)
@@ -81,7 +78,6 @@ class ParameterTypeService:
         await self._session.commit()
 
     async def get_parameter_type(self, parameter_type_id: int) -> ParameterTypeResponse:
-        # parameter_type = await self._search_parameter_type_id(parameter_type_id)
         parameter_type = await self._session.get(ParameterType, parameter_type_id)
         if parameter_type is None:
             raise HTTPException(
