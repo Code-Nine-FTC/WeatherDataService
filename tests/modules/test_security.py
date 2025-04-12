@@ -1,5 +1,6 @@
-from app.modules.security import PasswordManager, TokenManager
 import jwt
+
+from app.modules.security import PasswordManager, TokenManager
 
 
 def test_password_hash_and_verify():

@@ -1,5 +1,9 @@
 from typing import Iterable
 
+from pydantic import BaseModel
+
+from app.modules.basic_response import BasicResponse
+
 
 def test_basic_response_with_model():
     class TestModel(BaseModel):
