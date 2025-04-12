@@ -13,7 +13,7 @@ from ..schemas.weather_station import (
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation
+    PameterByStation,
 )
 
 
@@ -107,14 +107,6 @@ class WeatherStationService:
                 .values(**station_data)
             )
 
-        await self._session.commit()
-
-    async def remove_parameter(self, station_id: int, parameter_id: int) -> None:
-        parameter = await self._get_parameter(parameter_id, station_id)
-        if not parameter:
-            raise HTTPException(status_code=404, detail="Parâmetro não encontrado")
-
-        await self._session.delete(parameter)
         await self._session.commit()
 
     async def disable_station(self, station_id: int) -> None:
