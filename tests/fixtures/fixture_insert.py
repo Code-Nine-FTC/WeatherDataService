@@ -7,18 +7,36 @@ from app import db
 from app.routers import Alert, AlertType, Parameter, ParameterType, Station
 
 
-@pytest.fixture(autouse=True)
-def setup_alert_data():
-    alert_type = AlertType(
-        name="Temperatura Alta", value=30, math_signal="gt", status="active"
-    )
-    db.session.add(alert_type)
-    db.session.commit()
-
+@pytest.fixture
+def station():
     station = Station(name="Estação 1", location="Local 1")
     db.session.add(station)
     db.session.commit()
+    yield station
+    db.session.delete(station)
+    db.session.commit()
 
+
+@pytest.fixture
+def alert_type():
+    alert_type = AlertType(
+        name="Temperatura Alta",
+        value=30,
+        math_signal="gt",
+        status="active",
+        is_active=True,
+        create_date=datetime.utcnow(),
+        last_update=datetime.utcnow(),
+    )
+    db.session.add(alert_type)
+    db.session.commit()
+    yield alert_type
+    db.session.delete(alert_type)
+    db.session.commit()
+
+
+@pytest.fixture
+def alert(alert_type, station):
     alert = Alert(
         alert_type_id=alert_type.id,
         station_id=station.id,
@@ -27,38 +45,56 @@ def setup_alert_data():
     )
     db.session.add(alert)
     db.session.commit()
-
     yield alert
-
     db.session.delete(alert)
-    db.session.delete(station)
-    db.session.delete(alert_type)
     db.session.commit()
 
 
 # fixture parameter_type
-@pytest.fixture(autouse=True)
-def setup_parameter_type():
-    parameter_type_data = {
-        "name": "Temperatura",
-        "measure_unit": "°C",
-        "qnt_decimals": 2,
-        "offset": None,
-        "factor": 1.0,
-    }
-
-    parameter_type = ParameterType(**parameter_type_data)
-    db.session.add(parameter_type)
+@pytest.fixture
+def parameter_type_ativo():
+    """Cria um tipo de parâmetro ativo para os testes."""
+    tipo = ParameterType(
+        name="Temperatura",
+        measure_unit="°C",
+        qnt_decimals=2,
+        offset=None,
+        factor=1.0,
+        is_active=True,
+    )
+    db.session.add(tipo)
+    db.session.commit()
+    yield tipo
+    db.session.delete(tipo)
     db.session.commit()
 
-    yield parameter_type
 
-    db.session.delete(parameter_type)
+@pytest.fixture
+def parameter_type_inativo():
+    """Cria um tipo de parâmetro inativo."""
+    tipo = ParameterType(
+        name="Pressão",
+        measure_unit="Pa",
+        qnt_decimals=1,
+        offset=0.0,
+        factor=1.2,
+        is_active=False,
+    )
+    db.session.add(tipo)
     db.session.commit()
+    yield tipo
+    db.session.delete(tipo)
+    db.session.commit()
+
+
+@pytest.fixture
+def parameter_type_nao_existente_id():
+    """Retorna um ID que não existe no banco."""
+    return 99999
 
 
 # fixture station
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def setup_station():
     parameter_type_1 = ParameterType(
         name="Temperatura", measure_unit="°C", qnt_decimals=2, offset=None, factor=1.0
@@ -67,33 +103,24 @@ def setup_station():
         name="Pressão", measure_unit="Pa", qnt_decimals=2, offset=None, factor=1.0
     )
 
-    db.session.add(parameter_type_1)
-    db.session.add(parameter_type_2)
+    db.session.add_all([parameter_type_1, parameter_type_2])
     db.session.commit()
 
-    station_data = {
-        "name": "Estação Teste",
-        "uid": "12345-abcde",
-        "latitude": -23.5505,
-        "longitude": -46.6333,
-        "address": {"city": "São Paulo", "state": "SP", "country": "Brasil"},
-        "parameter_types": [parameter_type_1.id, parameter_type_2.id],
-    }
-
     station = Station(
-        name=station_data["name"],
-        uid=station_data["uid"],
-        latitude=station_data["latitude"],
-        longitude=station_data["longitude"],
-        address=station_data["address"],
-        parameter_types=station_data["parameter_types"],
+        name="Estação Teste",
+        uid="12345-abcde",
+        latitude=-23.5505,
+        longitude=-46.6333,
+        address={"city": "São Paulo", "state": "SP", "country": "Brasil"},
+        parameter_types=[parameter_type_1.id, parameter_type_2.id],
     )
 
     db.session.add(station)
     db.session.commit()
 
-    yield station
+    yield {"station": station, "parameter_types": [parameter_type_1, parameter_type_2]}
 
+    # Teardown
     db.session.delete(station)
     db.session.delete(parameter_type_1)
     db.session.delete(parameter_type_2)
@@ -101,37 +128,60 @@ def setup_station():
 
 
 # fixture alert_type
-@pytest.fixture(autouse=True)
-def setup_alert_type():
-    parameter = Parameter(
+@pytest.fixture
+def parameter():
+    """Cria um parâmetro válido."""
+    param = Parameter(
         name="Temperatura", measure_unit="°C", qnt_decimals=2, offset=None, factor=1.0
     )
-    db.session.add(parameter)
+    db.session.add(param)
+    db.session.commit()
+    yield param
+    db.session.delete(param)
     db.session.commit()
 
-    alert_type_data = {
-        "parameter_id": parameter.id,
-        "name": "Temperatura alta",
-        "value": 30,
-        "math_signal": "gt",
-        "status": "active",
-    }
 
-    alert_type = AlertType(
-        parameter_id=alert_type_data["parameter_id"],
-        name=alert_type_data["name"],
-        value=alert_type_data["value"],
-        math_signal=alert_type_data["math_signal"],
-        status=alert_type_data["status"],
+@pytest.fixture
+def alert_type_active(parameter):
+    """Cria um tipo de alerta ativo."""
+    alert = AlertType(
+        parameter_id=parameter.id,
+        name="Temperatura alta",
+        value=30,
+        math_signal="gt",
+        status="active",
+        is_active=True,
         create_date=datetime.now(),
         last_update=datetime.now(),
     )
-
-    db.session.add(alert_type)
+    db.session.add(alert)
+    db.session.commit()
+    yield alert
+    db.session.delete(alert)
     db.session.commit()
 
-    yield alert_type, parameter
 
-    db.session.delete(alert_type)
-    db.session.delete(parameter)
+@pytest.fixture
+def alert_type_inactive(parameter):
+    """Cria um tipo de alerta inativo."""
+    alert = AlertType(
+        parameter_id=parameter.id,
+        name="Temperatura baixa",
+        value=10,
+        math_signal="lt",
+        status="inactive",
+        is_active=False,
+        create_date=datetime.now(),
+        last_update=datetime.now(),
+    )
+    db.session.add(alert)
     db.session.commit()
+    yield alert
+    db.session.delete(alert)
+    db.session.commit()
+
+
+@pytest.fixture
+def parameter_not_in_db():
+    """Retorna um ID de parâmetro que não existe."""
+    return 99999
