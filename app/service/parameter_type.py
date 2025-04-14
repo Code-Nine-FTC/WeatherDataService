@@ -52,7 +52,7 @@ class ParameterTypeService:
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
             {"and pt.measure_unit like :measure_unit" if filters and filters.measure_unit else ""}
-            {"and pt.is_active is :is_active" if filters and filters.is_active else ""}
+            {"and pt.is_active = :is_active" if filters and filters.is_active else ""}
     """
         )
         if filters and filters.name:
