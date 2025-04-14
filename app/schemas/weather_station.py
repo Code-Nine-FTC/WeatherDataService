@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from typing import Any
+
 from pydantic import (
     BaseModel,
     field_validator,
@@ -8,10 +9,12 @@ from pydantic import (
 
 from app.modules.common import ConvertDates
 
+
 class StationAddress(BaseModel):
     city: str
     state: str
     country: str
+
 
 class WeatherStationBase(BaseModel):
     name: str

@@ -29,12 +29,14 @@ async def list_parameter_types(
 ) -> BasicResponse[list[ParameterTypeResponse]]:
     return await ParameterTypeController(session).list_parameter_types(filters)
 
+
 @router.patch("/{parameter_type_id}")
 async def delete_parameter_type(
     parameter_type_id: int,
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[None]:
     return await ParameterTypeController(session).disable_parameter_type(parameter_type_id)
+
 
 @router.get("/{parameter_type_id}")
 async def get_parameter_type(
@@ -43,6 +45,7 @@ async def get_parameter_type(
 ) -> BasicResponse[ParameterTypeResponse]:
     return await ParameterTypeController(session).get_parameter_type(
         parameter_type_id)
+
 
 @router.patch("/{parameter_type_id}/update")
 async def update_parameter_type(

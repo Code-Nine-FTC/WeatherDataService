@@ -9,11 +9,11 @@ from app.routers.controller.weather_station import WeatherStationController
 from app.schemas.user import UserResponse
 from app.schemas.weather_station import (
     FilterWeatherStation,
+    PameterByStation,
     WeatherStationCreate,
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation
 )
 
 router = APIRouter(
@@ -38,12 +38,14 @@ async def get_filtered_stations(
 ) -> BasicResponse[list[WeatherStationResponse]]:
     return await WeatherStationController(session).get_stations_by_filters(filters)
 
+
 @router.get("/parameters/{type_parameter_id}")
 async def get_parameters_by_station(
     type_paramter_id: int,
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[PameterByStation]]:
     return await WeatherStationController(session).get_parameter_by_station(type_paramter_id)
+
 
 @router.get("/{station_id}")
 async def get_station_by_id(
@@ -61,6 +63,7 @@ async def update_station(
     current_user: UserResponse = Depends(AuthManager.has_authorization),
 ) -> BasicResponse[None]:
     return await WeatherStationController(session).update_station(station_id, data)
+
 
 @router.patch("/disable/{station_id}", dependencies=[Depends(AuthManager.has_authorization)])
 async def disable_station(

@@ -3,17 +3,17 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import select, text, update, delete
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.models.db_model import Parameter, WeatherStation
 from ..schemas.weather_station import (
     FilterWeatherStation,
+    PameterByStation,
     WeatherStationCreate,
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation,
 )
 
 
@@ -56,7 +56,7 @@ class WeatherStationService:
         for existing_type_id, param_obj in existing_params_map.items():
             if existing_type_id not in new_ids and param_obj.is_active:
                 param_obj.is_active = False
-                self._session.add(param_obj) 
+                self._session.add(param_obj)
 
         for desired_type_id in new_ids:
             if desired_type_id in existing_params_map:
@@ -171,7 +171,7 @@ class WeatherStationService:
 
     async def get_station_by_id(self, station_id: int) -> WeatherStationResponseList:
         query = text(
-            f"""
+            """
             SELECT 
                 ws.id,
                 ws."name" AS name_station, 
@@ -217,7 +217,7 @@ class WeatherStationService:
 
     async def get_station_by_parameter(self, parmater_type_id: int) -> list[PameterByStation]:
         query = text(
-            f"""
+            """
             select 
                 p.id,
                 ws.name as name_station

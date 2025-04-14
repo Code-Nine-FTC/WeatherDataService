@@ -5,11 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.basic_response import BasicResponse
 from app.schemas.weather_station import (
     FilterWeatherStation,
+    PameterByStation,
     WeatherStationCreate,
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation
 )
 from app.service.weather_station import WeatherStationService
 
