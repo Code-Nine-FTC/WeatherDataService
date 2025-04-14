@@ -18,7 +18,6 @@ class ParameterTypeResponse(BaseModel):
     }
 
 
-
 class CreateParameterType(BaseModel):
     name: str
     measure_unit: str

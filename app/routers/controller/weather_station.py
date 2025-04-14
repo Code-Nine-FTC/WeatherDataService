@@ -5,11 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.basic_response import BasicResponse
 from app.schemas.weather_station import (
     FilterWeatherStation,
+    PameterByStation,
     WeatherStationCreate,
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation
 )
 from app.service.weather_station import WeatherStationService
 
@@ -42,22 +42,6 @@ class WeatherStationController:
         except HTTPException as e:
             raise e
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Erro interno: {str(e)}",
-            )
-
-    async def remove_parameter(
-        self, station_id: int, parameter_id: int
-    ) -> BasicResponse[None]:
-        try:
-            await self._service.remove_parameter(station_id, parameter_id)
-            return BasicResponse[None](data=None)
-        except HTTPException as http_ex:
-            await self._session.rollback()
-            raise http_ex
-        except Exception as e:
-            await self._session.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Erro interno: {str(e)}",

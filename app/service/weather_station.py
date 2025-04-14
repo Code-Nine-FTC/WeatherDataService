@@ -3,17 +3,17 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import select, text, update, delete
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.models.db_model import Parameter, WeatherStation
 from ..schemas.weather_station import (
     FilterWeatherStation,
+    PameterByStation,
     WeatherStationCreate,
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation
 )
 
 
@@ -49,21 +49,27 @@ class WeatherStationService:
         result = await self._session.execute(existing_query)
         existing_parameters = result.scalars().all()
 
-        existing_ids = {param.parameter_type_id for param in existing_parameters}
+        existing_params_map = {param.parameter_type_id: param for param in existing_parameters}
         new_ids = set(parameter_ids)
 
         # Remover parâmetros que não estão na nova lista
-        to_remove = [param for param in existing_parameters if param.parameter_type_id not in new_ids]
-        for param in to_remove:
-            await self._session.delete(param)
+        for existing_type_id, param_obj in existing_params_map.items():
+            if existing_type_id not in new_ids and param_obj.is_active:
+                param_obj.is_active = False
+                self._session.add(param_obj)
 
-        # Adicionar novos parâmetros
-        to_add = new_ids - existing_ids
-        for parameter_id in to_add:
-            parameter = Parameter(
-                parameter_type_id=parameter_id, station_id=station_id
-            )
-            self._session.add(parameter)
+        for desired_type_id in new_ids:
+            if desired_type_id in existing_params_map:
+                param_obj = existing_params_map[desired_type_id]
+                if not param_obj.is_active:
+                    param_obj.is_active = True
+                    self._session.add(param_obj)
+            else:
+                new_parameter = Parameter(
+                    parameter_type_id=desired_type_id,
+                    station_id=station_id
+                )
+                self._session.add(new_parameter)
 
         await self._session.flush()
         await self._session.commit()
@@ -109,14 +115,6 @@ class WeatherStationService:
 
         await self._session.commit()
 
-    async def remove_parameter(self, station_id: int, parameter_id: int) -> None:
-        parameter = await self._get_parameter(parameter_id, station_id)
-        if not parameter:
-            raise HTTPException(status_code=404, detail="Parâmetro não encontrado")
-
-        await self._session.delete(parameter)
-        await self._session.commit()
-
     async def disable_station(self, station_id: int) -> None:
         station = await self._get_station_by_id(station_id)
 
@@ -149,7 +147,8 @@ class WeatherStationService:
                 FROM parameters p
                 join parameter_types pt
                 on pt.id = p.parameter_type_id
-                WHERE p.station_id::BIGINT = ws.id),
+                WHERE p.station_id::BIGINT = ws.id
+                AND p.is_active = true),
                 '[]'::JSONB
             ) AS parameters
             FROM weather_stations ws
@@ -172,7 +171,7 @@ class WeatherStationService:
 
     async def get_station_by_id(self, station_id: int) -> WeatherStationResponseList:
         query = text(
-            f"""
+            """
             SELECT 
                 ws.id,
                 ws."name" AS name_station, 
@@ -193,7 +192,8 @@ class WeatherStationService:
                 FROM parameters p  
                 join parameter_types pt 
                 on pt.id = p.parameter_type_id
-                WHERE p.station_id::BIGINT = ws.id),  
+                WHERE p.station_id::BIGINT = ws.id
+                AND p.is_active = true),  
                 '[]'::JSONB
             ) AS parameters   
             FROM weather_stations ws
@@ -217,7 +217,7 @@ class WeatherStationService:
 
     async def get_station_by_parameter(self, parmater_type_id: int) -> list[PameterByStation]:
         query = text(
-            f"""
+            """
             select 
                 p.id,
                 ws.name as name_station

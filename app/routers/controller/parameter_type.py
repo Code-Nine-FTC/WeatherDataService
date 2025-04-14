@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,7 +61,7 @@ class ParameterTypeController:
     ) -> BasicResponse[ParameterTypeResponse]:
         try:
             parameter_type = await self._service.get_parameter_type(parameter_type_id)
-            return BasicResponse[ParameterTypeResponse](data= parameter_type)
+            return BasicResponse[ParameterTypeResponse](data=parameter_type)
         except HTTPException as http_ex:
             raise http_ex
         except Exception as e:
