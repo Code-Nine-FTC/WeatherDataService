@@ -1,23 +1,17 @@
 from datetime import datetime
-
 import jwt
-import pytest
 
 from app.modules.security import TokenManager
-from app.schemas.user import UserResponse
 
+def test_token_contains_user_id_mocked():
+    class FakeUser:
+        id = 1
+        name = "Test User"
+        email = "test@example.com"
+        is_adm = False
+        is_viewer = True
 
-@pytest.mark.asyncio
-async def test_token_contains_user_id():
-    fake_user = UserResponse(
-        id=1,
-        name="Test User",
-        email="test@example.com",
-        is_adm=False,
-        is_viewer=True,
-        password="hashed_password_123",
-        last_update=datetime.utcnow(),
-    )
+    fake_user = FakeUser()
 
     token_manager = TokenManager()
     token = token_manager.create_access_token(fake_user)
