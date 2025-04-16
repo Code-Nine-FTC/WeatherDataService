@@ -16,6 +16,7 @@ class AlertResponse(BaseModel):
     type_alert_name: str
     station_name: str
     create_date: datetime | int
+    is_read: bool
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value) -> datetime:
