@@ -52,14 +52,14 @@ class ParameterTypeService:
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
             {"and pt.measure_unit like :measure_unit" if filters and filters.measure_unit else ""}
-            {"and pt.is_active is :is_active" if filters and filters.is_active else ""}
-    """
+            {"and pt.is_active = :is_active" if filters and filters.is_active is not None else ""}
+            """
         )
         if filters and filters.name:
             query = query.bindparams(name=f"%{filters.name}%")
         if filters and filters.measure_unit:
             query = query.bindparams(measure_unit=f"%{filters.measure_unit}%")
-        if filters and filters.is_active:
+        if filters and filters.is_active is not None:
             query = query.bindparams(is_active=filters.is_active)
 
         result = await self._session.execute(query)
@@ -126,7 +126,7 @@ class ParameterTypeService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
             )
-        return ParameterType(**parameter_type)
+        return ParameterType(**parameter_type._asdict())
 
     async def _search_parameter_type(
         self,
