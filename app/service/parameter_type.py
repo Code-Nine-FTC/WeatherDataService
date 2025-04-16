@@ -46,6 +46,7 @@ class ParameterTypeService:
             pt.factor,
             pt."offset",
             pt.measure_unit,
+            pt.detect_type,
             pt.qnt_decimals,
             pt.is_active
             from parameter_types pt
