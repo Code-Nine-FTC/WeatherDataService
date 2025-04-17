@@ -43,7 +43,7 @@ class ParameterTypeService:
             select
             pt.id,
             pt."name",
-            pt."json",
+            pt.detect_type,
             pt.factor,
             pt."offset",
             pt.measure_unit,
@@ -119,7 +119,7 @@ class ParameterTypeService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
             )
-        return ParameterType(**parameter_type)
+        return ParameterType(**parameter_type._asdict())
 
     async def _search_parameter_type(
         self,

@@ -1,7 +1,7 @@
-from datetime import datetime
 import jwt
 
 from app.modules.security import TokenManager
+
 
 def test_token_contains_user_id_mocked():
     class FakeUser:

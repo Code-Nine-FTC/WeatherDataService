@@ -6,11 +6,11 @@ from pydantic import BaseModel
 
 class ParameterTypeResponse(BaseModel):
     id: int
-    json: dict[str, Any] = {}
+    detect_type: str
     measure_unit: str
     qnt_decimals: int
-    offset: int | None = None
-    factor: int | None = None
+    offset: float | None = None
+    factor: float | None = None
     name: str
     is_active: bool
 
