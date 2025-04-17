@@ -21,6 +21,7 @@ class ParameterTypeResponse(BaseModel):
 
 class CreateParameterType(BaseModel):
     name: str
+    detect_type: str
     measure_unit: str
     qnt_decimals: int
     offset: float | None = None
