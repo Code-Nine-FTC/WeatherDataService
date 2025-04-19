@@ -28,7 +28,7 @@ class WeatherStationService:
         )
         station = result.scalar()
         if not station:
-            raise HTTPException(status_code=404, detail="Estção não encontrada")
+            raise HTTPException(status_code=404, detail="Estação não encontrada")
         return station
 
     async def _get_parameter(self, parameter_id: int, station_id: int) -> Parameter | None:
