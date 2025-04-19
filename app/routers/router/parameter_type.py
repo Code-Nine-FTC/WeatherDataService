@@ -46,6 +46,7 @@ async def get_parameter_type(
     return await ParameterTypeController(session).get_parameter_type(parameter_type_id)
 
 
+
 @router.patch("/{parameter_type_id}/update")
 async def update_parameter_type(
     parameter_type_id: int,

@@ -25,7 +25,7 @@ Para rodar o serviço `devops-testes`, siga as instruções abaixo:
     ```
     Obs: Caso o projeto não reconheça as dependências instaladas, confira o interpretador Python:
     ```bash
-    Ctrl + P e depois `> Python: Select Interpreter`
+    Ctrl + P e depois `> Python: Select Interpreter 3.12.5`
     ```
 
 4. **Configurar o VSCode**:
@@ -70,14 +70,17 @@ Para rodar o serviço `devops-testes`, siga as instruções abaixo:
     }
     ```
 5. **Iniciar o submódulo**:
-        - Para inicializar o submódulo, execute o comando:
-        ```bash
-        git submodule update --init
-        ```
-        - Para atualizar o submódulo para a última versão, execute:
-        ```bash
-        git submodule update --remote
-        ```
+    - Para inicializar o submódulo, execute o comando:
+
+    ```bash
+    git submodule update --init
+    ```
+
+    - Para atualizar o submódulo para a última versão, execute:
+
+    ```bash
+    git submodule update --remote
+    ```
 
 6. **Iniciando ruff e mypy**:
     ## Antes de cada commit, use os seguintes comandos:

@@ -1,8 +1,9 @@
-from datetime import datetime
+from typing import List
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
+import datetime
 
 from app.core.models.db_model import ParameterType
 from app.schemas.parameter_type import (
@@ -52,11 +53,8 @@ class ParameterTypeService:
             from parameter_types pt
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
-            {
-                "and pt.is_active = :is_active"
-                if filters and filters.is_active is not None
-                else ""
-            }
+            {"and pt.measure_unit like :measure_unit" if filters and filters.measure_unit else ""}
+            {"and pt.is_active is :is_active" if filters and filters.is_active else ""}
     """
         )
         if filters and filters.name:
@@ -67,8 +65,10 @@ class ParameterTypeService:
         result = await self._session.execute(query)
         parameter_types = result.fetchall()
         return [ParameterTypeResponse(**pt._asdict()) for pt in parameter_types]
-
-    async def delete_parameter_type(self, parameter_type_id: int) -> None:
+    
+    async def delete_parameter_type(
+        self, parameter_type_id: int
+    ) -> None:
         parameter_type = await self._search_parameter_type_id(parameter_type_id)
         await self._session.execute(
             update(ParameterType)
@@ -84,8 +84,10 @@ class ParameterTypeService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tipo de parâmetro com a ID {parameter_type_id} não encontrado.",
             )
-
-        return ParameterTypeResponse.model_validate(parameter_type, from_attributes=True)
+        
+        return ParameterTypeResponse.model_validate(
+            parameter_type, from_attributes=True
+        )
 
     async def update_parameter_type(
         self,
@@ -108,10 +110,12 @@ class ParameterTypeService:
         )
         await self._session.commit()
 
-    async def _search_parameter_type_id(self, parameter_type_id: int) -> ParameterType:
-        query = text("SELECT * FROM parameter_types WHERE id = :parameter_type_id").bindparams(
-            parameter_type_id=parameter_type_id
-        )
+    async def _search_parameter_type_id(
+        self, parameter_type_id: int
+    ) -> ParameterType:
+        query = text(
+            f"SELECT * FROM parameter_types WHERE id = :parameter_type_id"
+        ).bindparams(parameter_type_id=parameter_type_id)
         result = await self._session.execute(query)
         parameter_type = result.fetchone()
         if parameter_type is None:

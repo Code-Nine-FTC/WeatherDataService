@@ -61,7 +61,7 @@ class WeatherStationUpdate(BaseModel):
 class FilterWeatherStation(BaseModel):
     uid: str | None = None
     name: str | None = None
-    status: bool | None = None
+    is_active: bool | None = None
 
 
 class WeatherStationResponse(BaseModel):
@@ -71,8 +71,8 @@ class WeatherStationResponse(BaseModel):
     address: StationAddress | None = None
     latitude: float
     longitude: float
-    create_date: datetime | int
-    status: bool
+    create_date: datetime
+    is_active: bool
     parameters: list[dict[str, Any]] | None = []
 
     @field_validator("create_date", mode="before")
@@ -88,7 +88,7 @@ class WeatherStationResponseList(BaseModel):
     latitude: float
     longitude: float
     create_date: int
-    status: bool
+    is_active: bool
     parameters: list[dict[str, Any]] | None = []
 
 
