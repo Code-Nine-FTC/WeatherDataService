@@ -10,11 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependency.database import Database
 from app.modules.security import TokenManager
 from main import app
-from tests.fixtures.fixture_user import fake_user  # noqa: F401, E261
+from tests.fixtures.fixture_insert import TestDataFixtures  # noqa: F401
+
+# Importa as fixtures necessárias
+from tests.fixtures.fixture_user import fake_user  # noqa: F401
 
 
 @pytest.fixture(scope="function")  # noqa: PT003
-def authenticated_client(fake_user) -> TestClient:  # noqa: F811 #type: ignore[no-untyped-def]
+def authenticated_client(fake_user) -> TestClient:  # noqa: F811  # type: ignore[no-untyped-def]
     client = TestClient(app, base_url="http://localhost:5000")
     token = TokenManager().create_access_token(fake_user)
     client.headers.update({"Authorization": f"Bearer {token}"})
