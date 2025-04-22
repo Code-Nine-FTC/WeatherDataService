@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependency.database import Database
 from app.modules.security import TokenManager
 from main import app
-from tests.fixtures.fixture_insert import TestDataFixtures  # noqa: F401
 
 # Importa as fixtures necessárias
 from tests.fixtures.fixture_user import fake_user  # noqa: F401

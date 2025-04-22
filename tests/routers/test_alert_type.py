@@ -29,13 +29,13 @@ class TestAlertType:
         assert response.json() == {"data": None}
 
     # 2. Tenta criar alerta existente (mesmo nome, valor e sinal)
-    def test_create_alert_type_conflict(self, alert_type_active):
+    def test_create_alert_type_conflict(self, type_alert_active):
         data = {
-            "parameter_id": alert_type_active.parameter_id,
-            "name": alert_type_active.name,
-            "value": alert_type_active.value,
-            "math_signal": alert_type_active.math_signal,
-            "status": alert_type_active.status,
+            "parameter_id": type_alert_active.parameter_id,
+            "name": "Alerta de temperatura",
+            "value": 50,
+            "math_signal": "gt",
+            "status": "active",
         }
 
         response = self.client.post("/alert_type/", json=data)
@@ -59,9 +59,9 @@ class TestAlertType:
         assert "detail" in response.json()
 
     # 4. Criação com dados obrigatórios ausentes
-    def test_create_alert_type_missing_fields(self):
+    def test_create_alert_type_missing_fields(self, parameter):
         data = {
-            "name": "Sem parâmetro",
+            # intentionally omitting required fields
             "value": 20,
         }
 
@@ -71,7 +71,7 @@ class TestAlertType:
         assert "detail" in response.json()
 
     # 5. Lista alertas ativos
-    def test_list_active_alert_types(self, alert_type_active):
+    def test_list_active_alert_types(self, type_alert_active):
         response = self.client.get("/alert_type/")
 
         assert response.status_code == HTTP_STATUS_OK
@@ -80,7 +80,7 @@ class TestAlertType:
             assert item["is_active"] is True
 
     # 6. Lista alertas inativos
-    def test_list_inactive_alert_types(self, alert_type_inactive):
+    def test_list_inactive_alert_types(self, type_alert_inactive):
         response = self.client.get("/alert_type/?is_active=false")
 
         assert response.status_code == HTTP_STATUS_OK
@@ -89,12 +89,12 @@ class TestAlertType:
             assert item["is_active"] is False
 
     # 7. Lista alerta com ID existente
-    def test_get_alert_type_by_id(self, alert_type_active):
-        response = self.client.get(f"/alert_type/{alert_type_active.id}")
+    def test_get_alert_type_by_id(self, type_alert_active):
+        response = self.client.get(f"/alert_type/{type_alert_active.id}")
 
         assert response.status_code == HTTP_STATUS_OK
         data = response.json()["data"]
-        assert data["id"] == alert_type_active.id
+        assert data["id"] == type_alert_active.id
 
     # 8. Lista alerta com ID inexistente
     def test_get_alert_type_by_id_not_found(self):
@@ -103,8 +103,8 @@ class TestAlertType:
         assert response.status_code == HTTP_STATUS_NOT_FOUND
         assert "detail" in response.json()
 
-    # 9. Atualiza com todos os campos None (apenas atualiza last_update)
-    def test_update_alert_type_with_none_fields(self, alert_type_active):
+    # 9. Atualiza com todos os campos None
+    def test_update_alert_type_with_none_fields(self, type_alert_active):
         data = {
             "name": None,
             "value": None,
@@ -113,7 +113,7 @@ class TestAlertType:
             "parameter_id": None,
         }
 
-        response = self.client.patch(f"/alert_type/{alert_type_active.id}", json=data)
+        response = self.client.patch(f"/alert_type/{type_alert_active.id}", json=data)
 
         assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
@@ -133,22 +133,22 @@ class TestAlertType:
         assert "detail" in response.json()
 
     # 11. Atualiza com nome já existente (gera conflito)
-    def test_update_alert_type_conflict(self, alert_type_active, alert_type_inactive):
+    def test_update_alert_type_conflict(self, type_alert_active, type_alert_inactive):
         data = {
-            "name": alert_type_inactive.name,
-            "value": alert_type_inactive.value,
-            "math_signal": alert_type_inactive.math_signal,
-            "status": alert_type_inactive.status,
+            "name": "Alerta de pressão",
+            "value": 10,
+            "math_signal": "lt",
+            "status": "inactive",
         }
 
-        response = self.client.patch(f"/alert_type/{alert_type_active.id}", json=data)
+        response = self.client.patch(f"/alert_type/{type_alert_active.id}", json=data)
 
         assert response.status_code == HTTP_STATUS_CONFLICT
         assert "detail" in response.json()
 
     # 12. Atualiza com parâmetro inexistente
     def test_update_alert_type_with_invalid_parameter(
-        self, alert_type_active, parameter_not_in_db
+        self, type_alert_active, parameter_not_in_db
     ):
         data = {
             "parameter_id": parameter_not_in_db,
@@ -158,13 +158,13 @@ class TestAlertType:
             "status": "active",
         }
 
-        response = self.client.patch(f"/alert_type/{alert_type_active.id}", json=data)
+        response = self.client.patch(f"/alert_type/{type_alert_active.id}", json=data)
 
         assert response.status_code == HTTP_STATUS_NOT_FOUND
         assert "detail" in response.json()
 
     # 13. Atualiza todos os campos
-    def test_update_alert_type_all_fields(self, alert_type_active, parameter):
+    def test_update_alert_type_all_fields(self, type_alert_active, parameter):
         data = {
             "parameter_id": parameter.id,
             "name": "Nova temperatura",
@@ -173,20 +173,20 @@ class TestAlertType:
             "status": "inactive",
         }
 
-        response = self.client.patch(f"/alert_type/{alert_type_active.id}", json=data)
+        response = self.client.patch(f"/alert_type/{type_alert_active.id}", json=data)
 
         assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
 
     # 14. Desativa tipo de alerta
-    def test_disable_alert_type(self, alert_type_active):
-        response = self.client.patch(f"/alert_type/disables/{alert_type_active.id}")
+    def test_disable_alert_type(self, type_alert_active):
+        response = self.client.patch(f"/alert_type/disables/{type_alert_active.id}")
 
         assert response.status_code == HTTP_STATUS_OK
         assert response.json() == {"data": None}
 
         # Verifica se ficou inativo
-        get_response = self.client.get(f"/alert_type/{alert_type_active.id}")
+        get_response = self.client.get(f"/alert_type/{type_alert_active.id}")
         assert get_response.status_code == HTTP_STATUS_OK
         assert get_response.json()["data"]["is_active"] is False
 

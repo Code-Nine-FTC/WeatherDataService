@@ -18,6 +18,7 @@ router = APIRouter(
     dependencies=[Depends(AuthManager.has_authorization)],
 )
 
+
 @router.post("/")
 async def create_alert_type(
     alert_type_data: AlertTypeCreate,
