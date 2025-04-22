@@ -27,21 +27,21 @@ class TestStation:
             "latitude": -10.0,
             "longitude": -50.0,
             "address": {"city": "Cuiabá", "state": "MT", "country": "Brasil"},
-            "parameter_types": [pt.id for pt in self.param_types],
+            "parameter_types": [1 for pt in self.param_types],
         }
         response = self.client.post("/stations/", json=data)
         assert response.status_code == HTTP_STATUS_OK
 
     # 2. POST - UID existente precisa de uma fixture com uma estação cadastrada, e nessa função precisa passar o mesmo uid
     def test_create_station_with_existing_uid(self):
-        # A estação já existe por conta da fixture setup_station, que cria a estação
+        # Usa a estação criada automaticamente pela fixture setup_station
         data = {
-            "name": "Repetida",
-            "uid": self.station.uid,  # Usando o mesmo UID da estação criada na fixture
+            "name": "Duplicada",
+            "uid": self.station.uid,  # mesmo UID da estação da fixture
             "latitude": -22.0,
             "longitude": -44.0,
-            "address": {"city": "SP", "state": "SP", "country": "Brasil"},
-            "parameter_types": [pt.id for pt in self.param_types],
+            "address": {"city": "São Paulo", "state": "SP", "country": "Brasil"},
+            "parameter_types": [ 1 for pt in self.param_types],
         }
         response = self.client.post("/stations/", json=data)
         assert response.status_code == HTTP_STATUS_CONFLICT
@@ -95,6 +95,7 @@ class TestStation:
     def test_get_parameter_by_invalid_type_id(self):
         response = self.client.get("/stations/parameters/99999")
         assert response.status_code == HTTP_STATUS_NOT_FOUND
+
 
     # 9. GET - Estação por ID precisa de fixture para ter algo para buscar
     def test_get_station_by_id(self):

@@ -1,7 +1,8 @@
-import pytest
 from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import AsyncGenerator
+
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import Alert, Parameter, ParameterType, TypeAlert, WeatherStation
 from app.dependency.database import Database
@@ -111,6 +112,7 @@ async def weather_station(db_session: AsyncSession, parameter_type_ativo):
         create_date=int(datetime.now(timezone.utc).timestamp()),
         is_active=True,
     )
+    # Associando corretamente os tipos de parâmetros à estação
     station.parameter_types = [parameter_type_ativo]
     db_session.add(station)
     await db_session.commit()
@@ -120,6 +122,7 @@ async def weather_station(db_session: AsyncSession, parameter_type_ativo):
 
 @pytest.fixture
 async def setup_station(db_session: AsyncSession):
+    # Criando dois tipos de parâmetros
     param_type_1 = ParameterType(
         name="Temperatura",
         detect_type="climate",
@@ -141,6 +144,7 @@ async def setup_station(db_session: AsyncSession):
     db_session.add_all([param_type_1, param_type_2])
     await db_session.commit()
 
+    # Criando a estação meteorológica
     station = WeatherStation(
         name="Estação Teste",
         uid="test-uid-123",
@@ -150,14 +154,17 @@ async def setup_station(db_session: AsyncSession):
         create_date=int(datetime.now(timezone.utc).timestamp()),
         is_active=True,
     )
+
+    # Associando os tipos de parâmetros à estação
     station.parameter_types = [param_type_1, param_type_2]
 
     db_session.add(station)
     await db_session.commit()
 
+    # Retornando a estação e os tipos de parâmetros
     yield {"station": station, "parameter_types": [param_type_1, param_type_2]}
 
-    # Cleanup
+    # Cleanup: deletando a estação e os tipos de parâmetros
     await db_session.delete(station)
     await db_session.delete(param_type_1)
     await db_session.delete(param_type_2)
