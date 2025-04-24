@@ -39,13 +39,17 @@ jobs:
 
     steps:
       
+      - name: Checkout do código com submódulos
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
       - name: Inicializar e atualizar submódulos corretamente
         run: |
           git submodule init
           git submodule update --recursive --remote
-
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Criar diretório alembic
         run: mkdir -p alembic
