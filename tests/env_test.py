@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from app.core.models.db_model import Base
 import os
 
+# Tester para o Alembic
 config = context.config
 config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"))
 
