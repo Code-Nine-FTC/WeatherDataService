@@ -56,7 +56,7 @@ jobs:
         run: echo "PYTHONPATH=${PYTHONPATH}:$(pwd)" >> $GITHUB_ENV
 
       - name: Criar diretório alembic (caso não exista)
-        run: mkdir -p alembic
+        run: alembic init alembic
 
       - name: Copiar arquivos de teste do Alembic
         run: |
