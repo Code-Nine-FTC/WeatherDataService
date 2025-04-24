@@ -33,15 +33,18 @@ def run_migrations_offline():
 
 async def run_migrations_online():
     """Executa migrações no modo online com AsyncEngine."""
+    # Criar engine async
     connectable = create_async_engine(config.get_main_option("sqlalchemy.url"))
 
     async with connectable.connect() as connection:
+        # Usar run_sync para passar a conexão para o contexto Alembic
         await connection.run_sync(
             lambda conn: context.configure(
                 connection=conn, target_metadata=target_metadata
             )
         )
 
+        # Usar uma transação assíncrona para a execução das migrações
         async with connection.begin():
             await connection.run_sync(context.run_migrations)
 
