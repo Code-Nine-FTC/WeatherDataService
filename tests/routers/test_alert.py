@@ -11,7 +11,7 @@ class TestAlert:
     def setup(self, authenticated_client: TestClient):
         self.client = authenticated_client
 
-    # 1. Lista todos os alertas — precisa da fixture de alerta para garantir que exista algo listado
+    # 1. Lista todos os alertas — precisa da fixture de alerta
     def test_get_all_alerts(self, alert):
         response = self.client.get("/alert/all")
 
@@ -20,7 +20,7 @@ class TestAlert:
         assert isinstance(data, list)
         assert any(a["id"] == alert.id for a in data)
 
-    # 2. Lista alertas filtrando por station_id — precisa da fixture de alerta (que já inclui estação)
+    # 2. Lista alertas filtrando por station_id — precisa da fixture de alerta
     def test_get_alerts_by_station_id(self, alert):
         response = self.client.get("/alert/all", params={"station_id": alert.station_id})
 
@@ -28,7 +28,7 @@ class TestAlert:
         data = response.json()["data"]
         assert all(a["station_name"] == "Estação 1" for a in data)
 
-    # 3. Lista alertas filtrando por alert_type_id — precisa da fixture de alerta (que já inclui tipo de alerta)
+    # 3. Lista alertas filtrando por alert_type_id — precisa da fixture de alerta
     def test_get_alerts_by_alert_type_id(self, alert):
         response = self.client.get("/alert/all", params={"alert_type_id": alert.type_alert_id})
 

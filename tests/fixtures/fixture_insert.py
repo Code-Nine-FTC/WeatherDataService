@@ -11,14 +11,17 @@ from app.dependency.database import Database
 # Fixtures de sessão assíncrona
 # ============================================
 
+
 @pytest.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     async with Database().session as session:
         yield session
 
+
 # ============================================
 # Fixtures de Parâmetros
 # ============================================
+
 
 @pytest.fixture
 async def parameter(db_session: AsyncSession, parameter_type_ativo: ParameterType):
@@ -28,7 +31,7 @@ async def parameter(db_session: AsyncSession, parameter_type_ativo: ParameterTyp
         qnt_decimals=2,
         offset=None,
         factor=1.0,
-        parameter_type_id=parameter_type_ativo.id,  # Correção: associando corretamente o parameter_type_id
+        parameter_type_id=parameter_type_ativo.id,
     )
     db_session.add(param)
     await db_session.commit()
@@ -36,9 +39,11 @@ async def parameter(db_session: AsyncSession, parameter_type_ativo: ParameterTyp
     await db_session.delete(param)
     await db_session.commit()
 
+
 @pytest.fixture
 def parameter_not_in_db():
     return 999999
+
 
 @pytest.fixture
 async def parameter_type_ativo(db_session: AsyncSession):
@@ -57,13 +62,16 @@ async def parameter_type_ativo(db_session: AsyncSession):
     await db_session.delete(param_type)
     await db_session.commit()
 
+
 @pytest.fixture
 def parameter_type_nao_existente_id():
     return 999999
 
+
 # ============================================
 # Fixtures de Tipos de Alerta
 # ============================================
+
 
 @pytest.fixture
 async def type_alert_active(db_session: AsyncSession, parameter):
@@ -81,6 +89,7 @@ async def type_alert_active(db_session: AsyncSession, parameter):
     await db_session.delete(alert)
     await db_session.commit()
 
+
 @pytest.fixture
 async def type_alert_inactive(db_session: AsyncSession, parameter):
     alert = TypeAlert(
@@ -97,9 +106,11 @@ async def type_alert_inactive(db_session: AsyncSession, parameter):
     await db_session.delete(alert)
     await db_session.commit()
 
+
 # ============================================
 # Fixtures de Estações Meteorológicas
 # ============================================
+
 
 @pytest.fixture
 async def weather_station(db_session: AsyncSession, parameter_type_ativo):
@@ -119,6 +130,7 @@ async def weather_station(db_session: AsyncSession, parameter_type_ativo):
     yield station
     await db_session.delete(station)
     await db_session.commit()
+
 
 @pytest.fixture
 async def setup_station(db_session: AsyncSession):
@@ -170,9 +182,11 @@ async def setup_station(db_session: AsyncSession):
     await db_session.delete(param_type_2)
     await db_session.commit()
 
+
 # ============================================
 # Fixtures de Alertas
 # ============================================
+
 
 @pytest.fixture
 async def alert(db_session: AsyncSession, type_alert_active, weather_station):

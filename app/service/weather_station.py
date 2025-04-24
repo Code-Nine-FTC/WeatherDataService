@@ -39,9 +39,7 @@ class WeatherStationService:
         result = await self._session.execute(query)
         return result.scalar()
 
-    async def _create_parameter(
-        self, parameter_ids: list[int], station_id: int
-    ) -> None:
+    async def _create_parameter(self, parameter_ids: list[int], station_id: int) -> None:
         existing_query = select(Parameter).where(Parameter.station_id == station_id)
         result = await self._session.execute(existing_query)
         existing_parameters = result.scalars().all()
@@ -63,8 +61,7 @@ class WeatherStationService:
                     self._session.add(param_obj)
             else:
                 new_parameter = Parameter(
-                    parameter_type_id=desired_type_id,
-                    station_id=station_id
+                    parameter_type_id=desired_type_id, station_id=station_id
                 )
                 self._session.add(new_parameter)
 
@@ -167,7 +164,7 @@ class WeatherStationService:
     async def get_station_by_id(self, station_id: int) -> WeatherStationResponseList:
         query = text(
             """
-            SELECT 
+            SELECT
                 ws.id,
                 ws."name" AS name_station,
                 ws.uid,
@@ -183,12 +180,12 @@ class WeatherStationService:
                         'parameter_type_id', p.parameter_type_id,
                         'name_parameter', pt.name
                     )
-                ) 
-                FROM parameters p  
-                join parameter_types pt 
+                )
+                FROM parameters p
+                join parameter_types pt
                 on pt.id = p.parameter_type_id
                 WHERE p.station_id::BIGINT = ws.id
-                AND p.is_active = true),  
+                AND p.is_active = true),
                 '[]'::JSONB
             ) AS parameters
             FROM weather_stations ws
@@ -211,7 +208,7 @@ class WeatherStationService:
     async def get_station_by_parameter(self, parmater_type_id: int) -> list[PameterByStation]:
         query = text(
             """
-            select 
+            select
                 p.id,
                 ws.name as name_station
             from weather_stations ws

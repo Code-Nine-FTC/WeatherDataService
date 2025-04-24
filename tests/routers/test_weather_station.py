@@ -1,10 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.core.models.db_model import WeatherStation
-from datetime import datetime
-from tests.fixtures.fixture_insert import setup_station
-from tests.fixtures.fixture_insert import db_session
-
 
 HTTP_STATUS_OK = 200
 HTTP_STATUS_CONFLICT = 409
@@ -32,7 +27,7 @@ class TestStation:
         response = self.client.post("/stations/", json=data)
         assert response.status_code == HTTP_STATUS_OK
 
-    # 2. POST - UID existente precisa de uma fixture com uma estação cadastrada, e nessa função precisa passar o mesmo uid
+    # 2. POST - UID existente precisa de uma fixture com uma estação cadastrada
     def test_create_station_with_existing_uid(self):
         # Usa a estação criada automaticamente pela fixture setup_station
         data = {
@@ -41,7 +36,7 @@ class TestStation:
             "latitude": -22.0,
             "longitude": -44.0,
             "address": {"city": "São Paulo", "state": "SP", "country": "Brasil"},
-            "parameter_types": [ 1 for pt in self.param_types],
+            "parameter_types": [1 for pt in self.param_types],
         }
         response = self.client.post("/stations/", json=data)
         assert response.status_code == HTTP_STATUS_CONFLICT
@@ -96,7 +91,6 @@ class TestStation:
         response = self.client.get("/stations/parameters/99999")
         assert response.status_code == HTTP_STATUS_NOT_FOUND
 
-
     # 9. GET - Estação por ID precisa de fixture para ter algo para buscar
     def test_get_station_by_id(self):
         response = self.client.get(f"/stations/{self.station.id}")
@@ -109,7 +103,7 @@ class TestStation:
         response = self.client.get("/stations/99999")
         assert response.status_code == HTTP_STATUS_NOT_FOUND
 
-    # 11. PATCH - Atualizar estação com parâmetros precisa de fixture para ter algo para atualizar
+    # 11. PATCH - Atualizar estação com parâmetros precisa de fixture
     def test_update_station_with_new_parameters(self):
         data = {
             "name": "Estação Atualizada",

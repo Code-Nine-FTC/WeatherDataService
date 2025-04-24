@@ -9,6 +9,8 @@ HTTP_NOT_FOUND = 404
 HTTP_CONFLICT = 409
 HTTP_UNPROCESSABLE_ENTITY = 422
 
+QNT_DECIMALS_UPDATED = 3  # Valor usado na atualização do parâmetro
+
 
 class TestParameterType:
     # Fixture de setup para o cliente autenticado
@@ -137,7 +139,7 @@ class TestParameterType:
             json={
                 "name": "Temperatura Atualizada",
                 "measure_unit": "K",
-                "qnt_decimals": 3,
+                "qnt_decimals": QNT_DECIMALS_UPDATED,
                 "offset": 1.0,
                 "factor": 2.0,
             },
@@ -149,7 +151,7 @@ class TestParameterType:
         data = verify.json()["data"]
         assert data["name"] == "Temperatura Atualizada"
         assert data["measure_unit"] == "K"
-        assert data["qnt_decimals"] == 3
+        assert data["qnt_decimals"] == QNT_DECIMALS_UPDATED
 
     # Atualizar parâmetro inexistente
     def test_update_nonexistent_parameter_type(self, parameter_type_nao_existente_id):
