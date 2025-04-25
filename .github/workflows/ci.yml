@@ -52,6 +52,8 @@ jobs:
   database:
     name: Database Check Health
     runs-on: ubuntu-latest
+    needs: 
+      - setup
 
     services:
       postgres:
@@ -69,7 +71,11 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5434/testdb       
+      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5434/testdb
+    
+    steps:
+      - name: Verificar conexão com o banco de dados
+        run: pg_isready -h localhost -p 5434
 
   test:
     name: Testes
@@ -79,6 +85,21 @@ jobs:
       - database
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Listar arquivos no diretório atual
+        run: ls -R
+
+      - name: Criar ambiente virtual
+        run: python -m venv .venv
+
+      - name: Ativar ambiente virtual e instalar dependências
+        run: |
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Run Pytest
         run: |
           task test
@@ -117,21 +138,10 @@ jobs:
       - setup
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Listar arquivos no diretório atual
-        run: ls -R
-
-      - name: Criar ambiente virtual
-        run: python -m venv .venv
-
-      - name: Ativar ambiente virtual e instalar dependências
+      - name: Install dependencies
         run: |
-          source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          
       - name: Mypy Check
         run: |
           mypy .
