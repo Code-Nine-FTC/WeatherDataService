@@ -124,7 +124,10 @@ jobs:
           EOF
 
       - name: Run Alembic Migrations
-        run: alembic -c alembic.ini upgrade head
+        run: |
+              git submodule init
+              git submodule update --recursive --remote
+              alembic -c alembic.ini upgrade head
 
       - name: Set up Python
         uses: actions/setup-python@v4
