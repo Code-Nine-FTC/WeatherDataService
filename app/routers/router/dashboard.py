@@ -16,12 +16,12 @@ router = APIRouter(tags=["Dashboard"], prefix="/dashboard")
 
 
 @router.get(
-    "/station-history/{station_id}", response_model=BasicResponse[list[StationHistoryItem]]
+    "/station-history", response_model=BasicResponse[list[StationHistoryItem]]
 )
 async def get_station_history(
-    station_id: int = None,
+    station_id: int | None = Query(default=None, description="Optional station ID"),
     session: AsyncSession = Depends(SessionConnection.session),
-):
+) -> BasicResponse[list[StationHistoryItem]]:
     return await DashboardController(session).get_station_history(station_id)
 
 
@@ -30,21 +30,21 @@ async def get_station_history(
 )
 async def get_alert_type_distribution(
     session: AsyncSession = Depends(SessionConnection.session),
-):
+) -> BasicResponse[list[AlertTypeDistributionItem]]:
     return await DashboardController(session).get_alert_type_distribution()
 
 
 @router.get("/alert-counts", response_model=BasicResponse[AlertCounts])
 async def get_alert_counts(
     session: AsyncSession = Depends(SessionConnection.session),
-):
+) -> BasicResponse[AlertCounts]:
     return await DashboardController(session).get_alert_counts()
 
 
 @router.get("/station-status", response_model=BasicResponse[StationStatus])
 async def get_station_status(
     session: AsyncSession = Depends(SessionConnection.session),
-):
+) -> BasicResponse[StationStatus]:
     return await DashboardController(session).get_station_status()
 
 
@@ -53,5 +53,5 @@ async def get_station_status(
 )
 async def get_measures_status(
     session: AsyncSession = Depends(SessionConnection.session),
-):
+) -> BasicResponse[list[MeasuresStatusItem]]:
     return await DashboardController(session).get_measures_status()

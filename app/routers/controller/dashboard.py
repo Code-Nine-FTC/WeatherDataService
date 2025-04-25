@@ -16,7 +16,8 @@ class DashboardController:
     def __init__(self, session: AsyncSession):
         self._service = DashboardService(session)
 
-    async def get_station_history(self, station_id: int = None):
+    async def get_station_history(self, station_id: int = None
+        ) -> BasicResponse[list[StationHistoryItem]]:
         try:
             data = await self._service.get_station_history(station_id)
             return BasicResponse(
@@ -28,7 +29,8 @@ class DashboardController:
                 detail=f"Erro ao buscar histórico da estação: {str(e)}",
             )
 
-    async def get_alert_type_distribution(self):
+    async def get_alert_type_distribution(self
+        ) -> BasicResponse[list[AlertTypeDistributionItem]]:
         try:
             data = await self._service.get_alert_type_distribution()
             return BasicResponse(
@@ -40,7 +42,8 @@ class DashboardController:
                 detail=f"Erro ao buscar distribuição de alertas: {str(e)}",
             )
 
-    async def get_alert_counts(self):
+    async def get_alert_counts(self
+        ) -> BasicResponse[AlertCounts]:
         try:
             data = await self._service.get_alert_counts()
             return BasicResponse(data=AlertCounts(**data))
@@ -50,7 +53,8 @@ class DashboardController:
                 detail=f"Erro ao buscar contagem de alertas: {str(e)}",
             )
 
-    async def get_station_status(self):
+    async def get_station_status(self
+        ) -> BasicResponse[StationStatus]:
         try:
             data = await self._service.get_station_status()
             return BasicResponse(data=StationStatus(**data))
@@ -60,7 +64,8 @@ class DashboardController:
                 detail=f"Erro ao buscar status das estações: {str(e)}",
             )
 
-    async def get_measures_status(self):
+    async def get_measures_status(self
+        ) -> BasicResponse[list[MeasuresStatusItem]]:
         try:
             data = await self._service.get_measures_status()
             return BasicResponse(
