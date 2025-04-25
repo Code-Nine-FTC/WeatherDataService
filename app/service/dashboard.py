@@ -1,12 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
+from sqlalchemy.engine import Row
 
 
 class DashboardService:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def get_station_history(self, station_id: int | None = None):
+    async def get_station_history(self, station_id: int | None = None
+        ) -> list[Row]:
         base_query = """
             SELECT
                 m.value,
@@ -35,7 +37,7 @@ class DashboardService:
         result = await self._session.execute(query, params)
         return result.fetchall()
 
-    async def get_alert_type_distribution(self):
+    async def get_alert_type_distribution(self) -> list[Row]:
         query = text("""
             SELECT
                 name,
@@ -46,7 +48,8 @@ class DashboardService:
         result = await self._session.execute(query)
         return result.fetchall()
 
-    async def get_alert_counts(self):
+    async def get_alert_counts(self
+        ) -> dict[str, int]:
         queries = {
             "R": (
                 "SELECT COUNT(*) AS total "
@@ -73,7 +76,8 @@ class DashboardService:
             counts[key] = result.scalar()
         return counts
 
-    async def get_station_status(self):
+    async def get_station_status(self
+        ) -> dict[str, int]:
         total_query = "SELECT COUNT(*) AS total FROM weather_stations;"
         active_query = (
             "SELECT COUNT(*) AS total FROM weather_stations WHERE is_active = true;"
@@ -87,7 +91,8 @@ class DashboardService:
             "active": active_result.scalar(),
         }
 
-    async def get_measures_status(self):
+    async def get_measures_status(self
+        ) -> list[Row]:
         query = text("""
             SELECT
                 pt.name AS label,
