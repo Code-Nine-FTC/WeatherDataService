@@ -16,10 +16,10 @@ router = APIRouter(tags=["Dashboard"], prefix="/dashboard")
 
 
 @router.get(
-    "/station-history", response_model=BasicResponse[list[StationHistoryItem]]
+    "/station-history/{station_id}", response_model=BasicResponse[list[StationHistoryItem]]
 )
 async def get_station_history(
-    station_id: int = Query(..., description="ID da estação"),
+    station_id: int = None,
     session: AsyncSession = Depends(SessionConnection.session),
 ):
     return await DashboardController(session).get_station_history(station_id)

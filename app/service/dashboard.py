@@ -6,7 +6,7 @@ class DashboardService:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def get_station_history(self, station_id: int):
+    async def get_station_history(self, station_id: int = None):
         query = text("""
             SELECT
                 m.value,
@@ -16,7 +16,7 @@ class DashboardService:
             FROM measures m
             JOIN parameters p ON m.parameter_id = p.id
             JOIN parameter_types pt ON p.parameter_type_id = pt.id
-            WHERE p.station_id = :station_id
+            WHERE (:station_id IS NULL OR p.station_id = :station_id)
         """)
         result = await self._session.execute(query, {"station_id": station_id})
         return result.fetchall()

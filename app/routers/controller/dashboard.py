@@ -16,7 +16,7 @@ class DashboardController:
     def __init__(self, session: AsyncSession):
         self._service = DashboardService(session)
 
-    async def get_station_history(self, station_id: int):
+    async def get_station_history(self, station_id: int = None):
         try:
             data = await self._service.get_station_history(station_id)
             return BasicResponse(
