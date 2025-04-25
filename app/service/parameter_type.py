@@ -69,7 +69,7 @@ class ParameterTypeService:
         await self._session.execute(
             update(ParameterType)
             .where(ParameterType.id == parameter_type.id)
-            .values(is_active=False, last_update=datetime.now())
+            .values(is_active=False, last_update=datetime.datetime.now())
         )
         await self._session.commit()
 
