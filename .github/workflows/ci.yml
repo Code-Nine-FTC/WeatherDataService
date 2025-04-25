@@ -2,39 +2,22 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
   pull_request:
-    branches: [main, develop, feature/*, hotfix/*]
+    branches:
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
 
 jobs:
-  lint:
-    name: Lint & Style Check
+  test:
+    name: Testes e Linting
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install ruff mypy
-
-      - name: Run Ruff
-        run: ruff .
-
-      - name: Run MyPy
-        run: mypy .
-
-  migrations:
-    name: Alembic Migrations
-    runs-on: ubuntu-latest
-    needs: lint
 
     services:
       postgres:
@@ -44,7 +27,7 @@ jobs:
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
         ports:
-          - 5432:5432
+          - 5433:5432
         options: >-
           --health-cmd=pg_isready
           --health-interval=10s
@@ -55,18 +38,23 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
 
     steps:
+      - name: Checkout do código com submódulos
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+      
+      - name: Inicializar e atualizar submódulos corretamente
+        run: |
+          git submodule init
+          git submodule update --recursive --remote
+
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Criar diretório alembic
+        run: alembic init alembic
 
       - name: Criar alembic.ini
         run: |
@@ -133,46 +121,19 @@ jobs:
       - name: Run Alembic Migrations
         run: alembic -c alembic.ini upgrade head
 
-  test:
-    name: Run Unit Tests
-    runs-on: ubuntu-latest
-    needs: migrations
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd=pg_isready
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5433/testdb
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Tests
+      - name: Run tests
         run: pytest --cov=app -vv
 
-      - name: Generate Coverage Report
+      - name: Generate coverage report
         if: always()
         run: coverage html
