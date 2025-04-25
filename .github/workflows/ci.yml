@@ -63,7 +63,7 @@ jobs:
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
         ports:
-          - 5434:5434
+          - 5440:5432
         options: >-
           --health-cmd=pg_isready
           --health-interval=10s
@@ -71,11 +71,41 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5434/testdb
+      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5440/testdb
     
     steps:
-      - name: Verificar conexão com o banco de dados
-        run: pg_isready -h localhost -p 5434
+      - name: Checkout code
+        uses: actions/checkout@v3
+    
+      - name: Instalar PostgreSQL Client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+    
+      - name: Espera o serviço do PostgreSQL iniciar
+        run: |
+          for i in {1..10}; do
+            if pg_isready -h localhost -p 5440; then
+              break
+            fi
+            sleep 2
+          done
+    
+      - name: Carregar Schema
+        run: |
+          # Verifica se schema.sql existe na raiz
+          if [ -f "schema.sql" ]; then
+            echo "Loading schema.sql..."
+            PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -f schema.sql
+            echo "Schema loaded successfully!"
+          else
+            echo "ERROR: schema.sql not found in repository root!"
+            ls -la  # Lista arquivos para debug
+            exit 1
+          fi
+  
+      - name: Verificar estrutura e conexão com o banco de dados
+        run: |
+          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "\dt"
+          pg_isready -h localhost -p 5440
 
   test:
     name: Testes
@@ -102,6 +132,7 @@ jobs:
 
       - name: Run Pytest
         run: |
+          source .venv/bin/activate
           task test
 
   rufflint:
@@ -138,10 +169,22 @@ jobs:
       - setup
 
     steps:
-      - name: Install dependencies
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Listar arquivos no diretório atual
+        run: ls -R
+
+      - name: Criar ambiente virtual
+        run: python -m venv .venv
+
+      - name: Ativar ambiente virtual e instalar dependências
         run: |
+          source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          
       - name: Mypy Check
         run: |
+          source .venv/bin/activate
           mypy .
