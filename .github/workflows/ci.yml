@@ -85,11 +85,15 @@ jobs:
           from alembic import context
           from sqlalchemy import engine_from_config, pool
           from logging.config import fileConfig
+          from sqlalchemy.ext.asyncio import AsyncAttrs
+          from sqlalchemy.orm import DeclarativeBase, Mapped
           import os
           import sys
 
           sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../app/core')))
-          from db_models import Base
+          
+          class Base(AsyncAttrs, DeclarativeBase):
+            pass
 
           config = context.config
 
