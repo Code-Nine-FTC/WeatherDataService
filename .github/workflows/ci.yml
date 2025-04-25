@@ -27,7 +27,7 @@ jobs:
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
         ports:
-          - 5433:5432
+          - 5432:5432
         options: >-
           --health-cmd=pg_isready
           --health-interval=10s
@@ -57,7 +57,10 @@ jobs:
         run: ls -R app/core
 
       - name: Configurar PYTHONPATH
-        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/app" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/app/core:$PYTHONPATH" >> $GITHUB_ENV
+      
+      - name: Verificar PYTHONPATH
+        run: echo $PYTHONPATH
 
       - name: Install dependencies
         run: |
@@ -85,8 +88,8 @@ jobs:
           import os
           import sys
 
-          sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-          from app.core.models.db_models import Base
+          sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../app/core')))
+          from db_models import Base
 
           config = context.config
 
