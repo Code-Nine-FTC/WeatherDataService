@@ -21,7 +21,7 @@ class AlertCounts(BaseModel):
 
 class StationStatus(BaseModel):
     total: int
-    inactive: int
+    active: int
 
 
 class MeasuresStatusItem(BaseModel):

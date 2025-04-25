@@ -61,16 +61,16 @@ class DashboardService:
 
     async def get_station_status(self):
         total_query = "SELECT COUNT(*) AS total FROM weather_stations;"
-        inactive_query = (
-            "SELECT COUNT(*) AS total FROM weather_stations WHERE is_active = false;"
+        active_query = (
+            "SELECT COUNT(*) AS total FROM weather_stations WHERE is_active = true;"
         )
 
         total_result = await self._session.execute(text(total_query))
-        inactive_result = await self._session.execute(text(inactive_query))
+        active_result = await self._session.execute(text(active_query))
 
         return {
             "total": total_result.scalar(),
-            "inactive": inactive_result.scalar(),
+            "active": active_result.scalar(),
         }
 
     async def get_measures_status(self):
