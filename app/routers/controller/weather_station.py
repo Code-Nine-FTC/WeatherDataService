@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from fastapi import HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError  # ✅ Import necessário para tratar conflito
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.basic_response import BasicResponse
 from app.schemas.weather_station import (
@@ -28,7 +28,7 @@ class WeatherStationController:
             await self._session.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Já existe uma estação com esse UID."
+                detail="Já existe uma estação com esse UID.",
             )
         except HTTPException as e:
             raise e

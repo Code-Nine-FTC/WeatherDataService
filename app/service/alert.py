@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 
@@ -15,15 +15,10 @@ class AlertService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def delete_alert(self, id_alert: int) -> None:
-        result = await self._session.execute(select(Alert).where(Alert.id == id_alert))
-        alert = result.scalars().first()
-        if alert is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Alerta com a ID {id_alert} não encontrado.",
-            )
-        await self._session.delete(alert)
+    async def read_alert(self, id_alert: int) -> None:
+        await self._session.execute(
+            update(Alert).where(Alert.id == id_alert).values(is_read=True)
+        )
         await self._session.commit()
 
     async def get_alerts(self, filters: AlertFilterSchema) -> list[AlertResponse]:
@@ -51,6 +46,7 @@ class AlertService:
                 on ws.id = p.station_id
             where 1=1
             and ta.is_active = true
+            and a.is_read = false
             {"and ta.id = :alert_type_id" if filters and filters.alert_type_id else ""}
             {"and ws.id = :station_id" if filters and filters.station_id else ""}
             """

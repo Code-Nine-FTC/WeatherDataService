@@ -12,10 +12,10 @@ class RequestAlert(BaseModel):
 
 class AlertResponse(BaseModel):
     id: int
-    measure_value: str
+    measure_value: float
     type_alert_name: str
     station_name: str
-    create_date: int
+    create_date: datetime
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value: int) -> datetime:

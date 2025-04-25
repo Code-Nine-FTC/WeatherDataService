@@ -1,10 +1,10 @@
-import pytest
 from datetime import datetime, timezone
 from typing import AsyncGenerator
 
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.models.db_model import WeatherStation, ParameterType, TypeAlert, Alert
+from app.core.models.db_model import Alert, ParameterType, TypeAlert, WeatherStation
 from app.dependency.database import Database
 
 
@@ -91,11 +91,14 @@ async def full_station_fixture(db_session: AsyncSession, parameter_types_fixture
     await db_session.delete(station)
     await db_session.commit()
 
+
 # =====================================================
 # Fixture: Tipo de parâmetro ativo (usado para listagens, filtros, updates, etc.)
 # =====================================================
 @pytest.fixture
-async def parameter_type_ativo(db_session: AsyncSession) -> AsyncGenerator[ParameterType, None]:
+async def parameter_type_ativo(
+    db_session: AsyncSession,
+) -> AsyncGenerator[ParameterType, None]:
     param = ParameterType(
         name="Temperatura",
         detect_type="climate",
@@ -125,7 +128,9 @@ def parameter_type_nao_existente_id() -> int:
 # Fixture: Tipo de alerta (ligado a um tipo de parâmetro)
 # =====================================================
 @pytest.fixture
-async def alert_type_fixture(db_session: AsyncSession, parameter_type_ativo: ParameterType) -> AsyncGenerator[TypeAlert, None]:
+async def alert_type_fixture(
+    db_session: AsyncSession, parameter_type_ativo: ParameterType
+) -> AsyncGenerator[TypeAlert, None]:
     alert_type = TypeAlert(
         parameter_id=parameter_type_ativo.id,
         name="Alerta Ativo",
@@ -148,7 +153,9 @@ async def alert_type_fixture(db_session: AsyncSession, parameter_type_ativo: Par
 # Fixture: Estação usada em alertas
 # =====================================================
 @pytest.fixture
-async def alert_station_fixture(db_session: AsyncSession, parameter_types_fixture) -> AsyncGenerator[WeatherStation, None]:
+async def alert_station_fixture(
+    db_session: AsyncSession, parameter_types_fixture
+) -> AsyncGenerator[WeatherStation, None]:
     station = WeatherStation(
         name="Estação 1",
         uid="alert-uid",
@@ -171,7 +178,11 @@ async def alert_station_fixture(db_session: AsyncSession, parameter_types_fixtur
 # Fixture: Alerta completo
 # =====================================================
 @pytest.fixture
-async def alert(db_session: AsyncSession, alert_station_fixture: WeatherStation, alert_type_fixture: TypeAlert) -> AsyncGenerator[Alert, None]:
+async def alert(
+    db_session: AsyncSession,
+    alert_station_fixture: WeatherStation,
+    alert_type_fixture: TypeAlert,
+) -> AsyncGenerator[Alert, None]:
     alert = Alert(
         station_id=alert_station_fixture.id,
         type_alert_id=alert_type_fixture.id,

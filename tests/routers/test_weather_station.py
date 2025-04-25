@@ -1,9 +1,4 @@
-import pytest
 from fastapi.testclient import TestClient
-from tests.fixtures.fixture_insert import parameter_types_fixture
-from tests.fixtures.fixture_insert import station_with_existing_uid_fixture
-from tests.fixtures.fixture_insert import full_station_fixture
-from tests.fixtures.fixture_insert import db_session
 
 HTTP_STATUS_OK = 200
 HTTP_STATUS_CONFLICT = 409
@@ -12,7 +7,6 @@ HTTP_STATUS_NOT_FOUND = 404
 
 
 class TestStation:
-
     # 1. POST - Criação de estação não precisa de fixture
     def test_create_station(self, authenticated_client: TestClient, parameter_types_fixture):
         data = {
@@ -27,7 +21,9 @@ class TestStation:
         assert response.status_code == HTTP_STATUS_OK
 
     # 2. POST - UID existente precisa de uma fixture com uma estação cadastrada
-    def test_create_station_with_existing_uid(self, authenticated_client: TestClient, station_with_existing_uid_fixture):
+    def test_create_station_with_existing_uid(
+        self, authenticated_client: TestClient, station_with_existing_uid_fixture
+    ):
         station = station_with_existing_uid_fixture["station"]
         param_types = station_with_existing_uid_fixture["parameter_types"]
         data = {
@@ -48,7 +44,9 @@ class TestStation:
         assert response.status_code == HTTP_STATUS_UNPROCESSABLE
 
     # 4. POST - Com tipos de parâmetros e checagem de vínculo
-    def test_create_station_with_parameters_and_verify_link(self, authenticated_client: TestClient, parameter_types_fixture):
+    def test_create_station_with_parameters_and_verify_link(
+        self, authenticated_client: TestClient, parameter_types_fixture
+    ):
         data = {
             "name": "Vinculada",
             "uid": "com-parametro",
@@ -60,7 +58,9 @@ class TestStation:
         response = authenticated_client.post("/stations/", json=data)
         assert response.status_code == HTTP_STATUS_OK
 
-        response = authenticated_client.get("/stations/filters", params={"uid": "com-parametro"})
+        response = authenticated_client.get(
+            "/stations/filters", params={"uid": "com-parametro"}
+        )
         data = response.json()["data"][0]
         assert len(data["parameters"]) == len(parameter_types_fixture)
 
@@ -71,7 +71,9 @@ class TestStation:
         assert isinstance(response.json()["data"], list)
 
     # 6. GET - Lista com filtros precisa de fixture
-    def test_list_stations_with_filters(self, authenticated_client: TestClient, full_station_fixture):
+    def test_list_stations_with_filters(
+        self, authenticated_client: TestClient, full_station_fixture
+    ):
         station = full_station_fixture["station"]
         response = authenticated_client.get(
             "/stations/filters",
@@ -82,7 +84,9 @@ class TestStation:
         assert len(data) > 0
 
     # 7. GET - Parâmetro por ID precisa de fixture
-    def test_get_parameter_by_valid_type_id(self, authenticated_client: TestClient, parameter_types_fixture):
+    def test_get_parameter_by_valid_type_id(
+        self, authenticated_client: TestClient, parameter_types_fixture
+    ):
         param_id = parameter_types_fixture[0].id
         response = authenticated_client.get(f"/stations/parameters/{param_id}")
         assert response.status_code == HTTP_STATUS_OK
@@ -106,7 +110,9 @@ class TestStation:
         assert response.status_code == HTTP_STATUS_NOT_FOUND
 
     # 11. PATCH - Atualizar estação com parâmetros
-    def test_update_station_with_new_parameters(self, authenticated_client: TestClient, full_station_fixture):
+    def test_update_station_with_new_parameters(
+        self, authenticated_client: TestClient, full_station_fixture
+    ):
         station = full_station_fixture["station"]
         param_types = full_station_fixture["parameter_types"]
         data = {
@@ -126,7 +132,9 @@ class TestStation:
         assert response.status_code == HTTP_STATUS_NOT_FOUND
 
     # 13. PATCH - Remover parâmetros precisa de fixture
-    def test_remove_parameter_from_station_and_check_cleanup(self, authenticated_client: TestClient, full_station_fixture):
+    def test_remove_parameter_from_station_and_check_cleanup(
+        self, authenticated_client: TestClient, full_station_fixture
+    ):
         station = full_station_fixture["station"]
         param_id = full_station_fixture["parameter_types"][1].id
         response = authenticated_client.patch(f"/stations/{station.id}/parameter/{param_id}")

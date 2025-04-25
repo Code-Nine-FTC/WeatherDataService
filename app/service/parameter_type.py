@@ -1,4 +1,3 @@
-
 import datetime
 
 from fastapi import HTTPException, status
@@ -106,9 +105,9 @@ class ParameterTypeService:
         await self._session.commit()
 
     async def _search_parameter_type_id(self, parameter_type_id: int) -> ParameterType:
-        query = text(
-            "SELECT * FROM parameter_types WHERE id = :parameter_type_id"
-        ).bindparams(parameter_type_id=parameter_type_id)
+        query = text("SELECT * FROM parameter_types WHERE id = :parameter_type_id").bindparams(
+            parameter_type_id=parameter_type_id
+        )
         result = await self._session.execute(query)
         parameter_type = result.fetchone()
         if parameter_type is None:

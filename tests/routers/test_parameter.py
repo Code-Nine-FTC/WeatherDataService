@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from app.core.models.db_model import ParameterType
 from tests.fixtures.fixture_insert import db_session
 
@@ -12,7 +13,6 @@ QNT_DECIMALS_UPDATED = 3
 
 @pytest.mark.asyncio  # Marca a classe de testes para permitir testes assíncronos
 class TestParameterType:
-    
     # 1. POST - Criação de tipo de parâmetro
     def test_create_parameter_type(self, authenticated_client: TestClient):
         response = authenticated_client.post(
@@ -30,7 +30,9 @@ class TestParameterType:
         assert response.json() == {"data": None}
 
     # 2. POST - Tipo de parâmetro duplicado
-    async def test_create_parameter_type_conflict(self, authenticated_client: TestClient, db_session):
+    async def test_create_parameter_type_conflict(
+        self, authenticated_client: TestClient, db_session
+    ):
         # Criação de um tipo de parâmetro para garantir o conflito
         param_type = ParameterType(
             name="Duplicado",
@@ -59,7 +61,7 @@ class TestParameterType:
 
         assert response.status_code == HTTP_CONFLICT  # Agora deve retornar 409
         assert "Tipo de parâmetro já existe" in response.json().get("detail", "")
-        
+
         # Cleanup (Remover o tipo de parâmetro após o teste)
         await db_session.delete(param_type)
         await db_session.commit()
@@ -84,9 +86,7 @@ class TestParameterType:
 
     # 6. GET - Filtra tipos de parâmetro por nome
     def test_filter_by_name(self, authenticated_client: TestClient):
-        response = authenticated_client.get(
-            "/parameter_types/", params={"name": "Umidade"}
-        )
+        response = authenticated_client.get("/parameter_types/", params={"name": "Umidade"})
         assert response.status_code == HTTP_OK
         for item in response.json()["data"]:
             assert item["name"] == "Umidade"
