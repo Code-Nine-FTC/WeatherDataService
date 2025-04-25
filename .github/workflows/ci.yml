@@ -80,7 +80,7 @@ jobs:
           import sys
 
           sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-          from app.models import Base  # Ajuste esse import para o caminho correto dos seus modelos
+          from app.core.models.db_models import Base
 
           config = context.config
 
