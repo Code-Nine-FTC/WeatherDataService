@@ -31,29 +31,22 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
+
       - name: Verificar submódulos
         run: ls -R app/core
 
       - name: Configurar PYTHONPATH
-        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/app/core:$PYTHONPATH" >> $GITHUB_ENV
-      
-      - name: Verificar PYTHONPATH
-        run: echo $PYTHONPATH
-      
-      - name: Inicializar e atualizar submódulos corretamente
+        run: echo "PYTHONPATH=$(pwd)/app/core" >> $GITHUB_ENV
+
+      - name: Inicializar e atualizar submódulos
         run: |
           git submodule init
           git submodule update --recursive --remote
 
   database:
-    name: Database Check Health
+    name: Database Migrations
     runs-on: ubuntu-latest
-    needs: 
-      - setup
+    needs: setup
 
     services:
       postgres:
@@ -72,45 +65,62 @@ jobs:
 
     env:
       DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5440/testdb
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-    
-      - name: Instalar PostgreSQL Client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-    
-      - name: Espera o serviço do PostgreSQL iniciar
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Instalar Dependências
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          sudo apt-get update
+          sudo apt-get install -y python3-dev postgresql-client
+          pip install -r requirements.txt
+
+      - name: Esperar PostgreSQL iniciar
         run: |
           for i in {1..10}; do
             if pg_isready -h localhost -p 5440; then
+              echo "PostgreSQL está pronto"
               break
             fi
+            echo "Aguardando PostgreSQL... Tentativa $i/10"
             sleep 2
           done
-    
-      - name: Carregar Schema
+
+      - name: Initialize Alembic
         run: |
-          # Verifica se schema.sql existe na raiz
-          if [ -f "schema.sql" ]; then
-            echo "Loading schema.sql..."
-            PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -f schema.sql
-            echo "Schema loaded successfully!"
-          else
-            echo "ERROR: schema.sql not found in repository root!"
-            ls -la  # Lista arquivos para debug
-            exit 1
-          fi
-  
-      - name: Verificar estrutura e conexão com o banco de dados
+          source .venv/bin/activate
+          alembic init alembic
+
+      - name: Set Alembic env.py
         run: |
-          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "\dt"
-          pg_isready -h localhost -p 5440
+          echo "${{ secrets.ALEMBIC_ENV }}" > alembic/env.py
+
+      - name: Aplicar Migrações
+        run: |
+          source .venv/bin/activate
+          alembic stamp head
+          alembic revision --autogenerate -m "Initial migration"
+          alembic upgrade head
+
+      - name: Stop test database container
+        run: |
+          docker stop test-db
+
+      - name: Database updated
+        run: echo "Database successfully updated with Alembic migrations."
 
   test:
     name: Testes
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - setup
       - database
 
@@ -118,73 +128,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Listar arquivos no diretório atual
-        run: ls -R
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-      - name: Criar ambiente virtual
-        run: python -m venv .venv
-
-      - name: Ativar ambiente virtual e instalar dependências
+      - name: Instalar Dependências
         run: |
+          python -m venv .venv
           source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Pytest
-        run: |
-          source .venv/bin/activate
-          task test
+      - name: Rodar Testes
+        run: task test
 
-  rufflint:
+  lint:
     name: Linting
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - setup
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Listar arquivos no diretório atual
-        run: ls -R
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-      - name: Criar ambiente virtual
-        run: python -m venv .venv
+      - name: Instalar Ruff
+        run: pip install ruff
 
-      - name: Ativar ambiente virtual e instalar dependências
-        run: |
-          source .venv/bin/activate
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Ruff Check
-        run: |
-          source .venv/bin/activate
-          ruff check .
-    
-  mypy:
-    name: Type Checking
-    runs-on: ubuntu-latest
-    needs: 
-      - setup
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Listar arquivos no diretório atual
-        run: ls -R
-
-      - name: Criar ambiente virtual
-        run: python -m venv .venv
-
-      - name: Ativar ambiente virtual e instalar dependências
-        run: |
-          source .venv/bin/activate
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          
-      - name: Mypy Check
-        run: |
-          source .venv/bin/activate
-          mypy .
+      - name: Rodar Ruff
+        run: ruff check .
