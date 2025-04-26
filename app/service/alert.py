@@ -39,7 +39,7 @@ class AlertService:
             JOIN measures m
                 ON m.id = a.measure_id
             JOIN type_alerts ta
-                ON ta.id = a.type_alert_id -- correção aqui!
+                ON ta.id = a.type_alert_id
             JOIN parameters p
                 ON ta.parameter_id = p.id
             JOIN weather_stations ws
