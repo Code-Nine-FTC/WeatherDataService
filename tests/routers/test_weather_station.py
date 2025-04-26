@@ -1,9 +1,5 @@
 from fastapi.testclient import TestClient
-
-HTTP_STATUS_OK = 200
-HTTP_STATUS_CONFLICT = 409
-HTTP_STATUS_UNPROCESSABLE = 422
-HTTP_STATUS_NOT_FOUND = 404
+from fastapi import status
 
 
 class TestStation:
@@ -18,7 +14,7 @@ class TestStation:
             "parameter_types": [1 for pt in parameter_types_fixture],
         }
         response = authenticated_client.post("/stations/", json=data)
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
 
     # 2. POST - UID existente precisa de uma fixture com uma estação cadastrada
     def test_create_station_with_existing_uid(
@@ -35,13 +31,13 @@ class TestStation:
             "parameter_types": [pt.id for pt in param_types],
         }
         response = authenticated_client.post("/stations/", json=data)
-        assert response.status_code == HTTP_STATUS_CONFLICT
+        assert response.status_code == status.HTTP_409_CONFLICT
 
     # 3. POST - Campos ausentes não precisa de fixture
     def test_create_station_with_missing_fields(self, authenticated_client: TestClient):
         data = {"name": "Incompleta"}
         response = authenticated_client.post("/stations/", json=data)
-        assert response.status_code == HTTP_STATUS_UNPROCESSABLE
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     # 4. POST - Com tipos de parâmetros e checagem de vínculo
     def test_create_station_with_parameters_and_verify_link(
@@ -56,7 +52,7 @@ class TestStation:
             "parameter_types": [pt.id for pt in parameter_types_fixture],
         }
         response = authenticated_client.post("/stations/", json=data)
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
 
         response = authenticated_client.get(
             "/stations/filters", params={"uid": "com-parametro"}
@@ -67,7 +63,7 @@ class TestStation:
     # 5. GET - Lista estações precisa de fixture
     def test_list_stations(self, authenticated_client: TestClient, full_station_fixture):
         response = authenticated_client.get("/stations/filters")
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.json()["data"], list)
 
     # 6. GET - Lista com filtros precisa de fixture
@@ -79,7 +75,7 @@ class TestStation:
             "/stations/filters",
             params={"uid": station.uid, "name": station.name, "status": True},
         )
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
         data = response.json()["data"]
         assert len(data) > 0
 
@@ -89,25 +85,25 @@ class TestStation:
     ):
         param_id = parameter_types_fixture[0].id
         response = authenticated_client.get(f"/stations/parameters/{param_id}")
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
 
     # 8. GET - Parâmetro inexistente
     def test_get_parameter_by_invalid_type_id(self, authenticated_client: TestClient):
         response = authenticated_client.get("/stations/parameters/99999")
-        assert response.status_code == HTTP_STATUS_NOT_FOUND
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # 9. GET - Estação por ID precisa de fixture
     def test_get_station_by_id(self, authenticated_client: TestClient, full_station_fixture):
         station = full_station_fixture["station"]
         response = authenticated_client.get(f"/stations/{station.id}")
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
         data = response.json()["data"]
         assert data["uid"] == station.uid
 
     # 10. GET - Estação inexistente
     def test_get_station_by_invalid_id(self, authenticated_client: TestClient):
         response = authenticated_client.get("/stations/99999")
-        assert response.status_code == HTTP_STATUS_NOT_FOUND
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # 11. PATCH - Atualizar estação com parâmetros
     def test_update_station_with_new_parameters(
@@ -123,13 +119,13 @@ class TestStation:
             "address": {"city": "Floripa", "state": "SC", "country": "Brasil"},
         }
         response = authenticated_client.patch(f"/stations/{station.id}", json=data)
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
 
     # 12. PATCH - Atualizar com ID inválido
     def test_update_station_invalid_id(self, authenticated_client: TestClient):
         data = {"name": "Falha"}
         response = authenticated_client.patch("/stations/99999", json=data)
-        assert response.status_code == HTTP_STATUS_NOT_FOUND
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # 13. PATCH - Remover parâmetros precisa de fixture
     def test_remove_parameter_from_station_and_check_cleanup(
@@ -138,7 +134,7 @@ class TestStation:
         station = full_station_fixture["station"]
         param_id = full_station_fixture["parameter_types"][1].id
         response = authenticated_client.patch(f"/stations/{station.id}/parameter/{param_id}")
-        assert response.status_code == HTTP_STATUS_OK
+        assert response.status_code == status.HTTP_200_OK
 
         response = authenticated_client.get(f"/stations/{station.id}")
         data = response.json()["data"]
