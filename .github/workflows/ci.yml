@@ -98,21 +98,19 @@ jobs:
         run: |
           source .venv/bin/activate
           alembic init alembic
-
+          # Garante a estrutura de diretórios necessária
+          mkdir -p alembic/versions
+      
       - name: Set Alembic env.py
         run: |
           echo "${{ secrets.ALEMBIC_ENV }}" > alembic/env.py
+          # Configura o alembic.ini corretamente
+          echo -e "[alembic]\nscript_location = alembic\nsqlalchemy.url = $DATABASE_URL\n" > alembic.ini
 
       - name: Aplicar Migrações
         run: |
           source .venv/bin/activate
-          alembic stamp head
-          alembic revision --autogenerate -m "Initial migration"
-          alembic upgrade head
-
-      - name: Stop test database container
-        run: |
-          docker stop test-db
+          timeout 300 alembic upgrade head || (echo "Migration timeout exceeded" && exit 1)
 
       - name: Database updated
         run: echo "Database successfully updated with Alembic migrations."
