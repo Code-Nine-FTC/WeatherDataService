@@ -52,9 +52,11 @@ class ParameterTypeService:
             from parameter_types pt
             where 1=1
             {"and pt.name like :name" if filters and filters.name else ""}
-            {"and pt.is_active = :is_active"
-            if filters and filters.is_active is not None
-            else ""}
+            {
+                "and pt.is_active = :is_active"
+                if filters and filters.is_active is not None
+                else ""
+            }
     """
         )
         if filters and filters.name:

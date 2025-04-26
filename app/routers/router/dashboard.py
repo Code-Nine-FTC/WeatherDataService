@@ -15,9 +15,7 @@ from app.schemas.dashboard import (
 router = APIRouter(tags=["Dashboard"], prefix="/dashboard")
 
 
-@router.get(
-    "/station-history", response_model=BasicResponse[list[StationHistoryItem]]
-)
+@router.get("/station-history", response_model=BasicResponse[list[StationHistoryItem]])
 async def get_station_history(
     station_id: int | None = Query(default=None, description="Optional station ID"),
     session: AsyncSession = Depends(SessionConnection.session),
@@ -25,9 +23,7 @@ async def get_station_history(
     return await DashboardController(session).get_station_history(station_id)
 
 
-@router.get(
-    "/alert-types", response_model=BasicResponse[list[AlertTypeDistributionItem]]
-)
+@router.get("/alert-types", response_model=BasicResponse[list[AlertTypeDistributionItem]])
 async def get_alert_type_distribution(
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[AlertTypeDistributionItem]]:
@@ -48,9 +44,7 @@ async def get_station_status(
     return await DashboardController(session).get_station_status()
 
 
-@router.get(
-    "/measures-status", response_model=BasicResponse[list[MeasuresStatusItem]]
-)
+@router.get("/measures-status", response_model=BasicResponse[list[MeasuresStatusItem]])
 async def get_measures_status(
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[MeasuresStatusItem]]:

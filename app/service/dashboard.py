@@ -1,14 +1,13 @@
+from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
-from sqlalchemy.engine import Row
 
 
 class DashboardService:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def get_station_history(self, station_id: int | None = None
-        ) -> list[Row]:
+    async def get_station_history(self, station_id: int | None = None) -> list[Row]:
         base_query = """
             SELECT
                 m.value,
@@ -19,7 +18,7 @@ class DashboardService:
             JOIN parameters p ON m.parameter_id = p.id
             JOIN parameter_types pt ON p.parameter_type_id = pt.id
         """
-        
+
         params = {}
 
         query_string = base_query
@@ -29,7 +28,7 @@ class DashboardService:
             params = {"station_id": station_id}
         else:
             query_string = base_query
-            
+
         query_string += " ORDER BY m.measure_date DESC "
 
         query = text(query_string)
@@ -48,8 +47,7 @@ class DashboardService:
         result = await self._session.execute(query)
         return result.fetchall()
 
-    async def get_alert_counts(self
-        ) -> dict[str, int]:
+    async def get_alert_counts(self) -> dict[str, int]:
         queries = {
             "R": (
                 "SELECT COUNT(*) AS total "
@@ -76,12 +74,9 @@ class DashboardService:
             counts[key] = result.scalar()
         return counts
 
-    async def get_station_status(self
-        ) -> dict[str, int]:
+    async def get_station_status(self) -> dict[str, int]:
         total_query = "SELECT COUNT(*) AS total FROM weather_stations;"
-        active_query = (
-            "SELECT COUNT(*) AS total FROM weather_stations WHERE is_active = true;"
-        )
+        active_query = "SELECT COUNT(*) AS total FROM weather_stations WHERE is_active = true;"
 
         total_result = await self._session.execute(text(total_query))
         active_result = await self._session.execute(text(active_query))
@@ -91,8 +86,7 @@ class DashboardService:
             "active": active_result.scalar(),
         }
 
-    async def get_measures_status(self
-        ) -> list[Row]:
+    async def get_measures_status(self) -> list[Row]:
         query = text("""
             SELECT
                 pt.name AS label,
