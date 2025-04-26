@@ -2,7 +2,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.core.models.db_model import Alert
-from tests.fixtures.fixture_insert import Alert
 
 # Códigos HTTP usados nos testes
 HTTP_STATUS_OK = 200
