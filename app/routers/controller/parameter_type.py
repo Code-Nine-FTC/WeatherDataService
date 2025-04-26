@@ -1,14 +1,16 @@
-from typing import Any
-
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.basic_response import BasicResponse
 from app.schemas.parameter_type import (
     CreateParameterType,
+    FilterParameterType,
     ParameterTypeResponse,
+    UpdateParameterType,
 )
-from app.service.parameter_type import FilterParameterType, ParameterTypeService
+from app.service.parameter_type import (
+    ParameterTypeService,
+)
 
 
 class ParameterTypeController:
@@ -50,7 +52,7 @@ class ParameterTypeController:
     async def update_parameter_type(
         self,
         parameter_type_id: int,
-        data: dict[str, Any],
+        data: UpdateParameterType,
     ) -> BasicResponse[None]:
         try:
             await self._service.update_parameter_type(parameter_type_id, data)
