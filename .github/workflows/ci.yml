@@ -81,7 +81,8 @@ jobs:
           source .venv/bin/activate
           sudo apt-get update
           sudo apt-get install -y python3-dev postgresql-client
-          pip install -r requirements.txt
+          pip install alembic sqlalchemy asyncpg
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Esperar PostgreSQL iniciar
         run: |
@@ -94,26 +95,42 @@ jobs:
             sleep 2
           done
 
-      - name: Initialize Alembic
+      - name: Reset Database
         run: |
-          source .venv/bin/activate
-          alembic init alembic
-          # Garante a estrutura de diretórios necessária
+          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "DROP TABLE IF EXISTS alembic_version;"
+
+      - name: Configurar ambiente Alembic
+        run: |
           mkdir -p alembic/versions
-      
-      - name: Set Alembic env.py
+          
+          # Criar env.py usando Python para evitar problemas com caracteres especiais
+          python -c "
+          import os
+          with open('alembic/env.py', 'w') as f:
+              f.write(os.environ['ALEMBIC_ENV'])
+          "
+
+        env:
+          ALEMBIC_ENV: ${{ secrets.ALEMBIC_ENV }}
+
+      - name: Verificar arquivos Alembic
         run: |
-          echo "${{ secrets.ALEMBIC_ENV }}" > alembic/env.py
-          # Configura o alembic.ini corretamente
-          echo -e "[alembic]\nscript_location = alembic\nsqlalchemy.url = $DATABASE_URL\n" > alembic.ini
+          echo "Conteúdo de alembic.ini:"
+          cat alembic.ini
+          echo -e "\nPrimeiras 10 linhas de env.py:"
+          head -n 10 alembic/env.py
 
       - name: Aplicar Migrações
         run: |
           source .venv/bin/activate
+          alembic revision --autogenerate -m "Initial migration"
           timeout 300 alembic upgrade head || (echo "Migration timeout exceeded" && exit 1)
 
-      - name: Database updated
-        run: echo "Database successfully updated with Alembic migrations."
+      - name: Verificar Tabelas
+        run: |
+          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "\dt"
+          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "SELECT * FROM alembic_version;"
 
   test:
     name: Testes
