@@ -29,24 +29,24 @@ class AlertService:
     ) -> list[AlertResponse]:
         query = text(
             f"""
-            select
+            SELECT
                 a.id,
-                m.value as measure_value,
-                ws."name" as station_name,
-                ta."name" as type_alert_name,
+                m.value AS measure_value,
+                ws."name" AS station_name,
+                ta."name" AS type_alert_name,
                 a.create_date
-            from alerts a
-            join measures m
-                on m.id = a.measure_id
-            join type_alerts ta
-                on ta.id = m.id
-            join parameters p
-                on ta.parameter_id = p.id
-            join weather_stations ws
-                on ws.id = p.station_id
-            where 1=1
-            and ta.is_active = true
-            and a.is_read = false
+            FROM alerts a
+            JOIN measures m
+                ON m.id = a.measure_id
+            JOIN type_alerts ta
+                ON ta.id = a.type_alert_id -- correção aqui!
+            JOIN parameters p
+                ON ta.parameter_id = p.id
+            JOIN weather_stations ws
+                ON ws.id = p.station_id
+            WHERE 1=1
+            AND ta.is_active = true
+            AND a.is_read = false;
             {"and ta.id = :alert_type_id" if filters and filters.alert_type_id else ""}
             {"and ws.id = :station_id" if filters and filters.station_id else ""}
             """
