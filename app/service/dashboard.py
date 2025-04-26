@@ -38,11 +38,17 @@ class DashboardService:
 
     async def get_alert_type_distribution(self) -> list[Row]:
         query = text("""
-            SELECT
-                name,
-                COUNT(*) AS total
-            FROM type_alerts
-            GROUP BY name
+            SELECT 
+                ta.name AS name,
+                COUNT(a.id) AS total
+            FROM 
+                type_alerts ta
+            LEFT JOIN 
+                alerts a ON a.type_alert_id = ta.id
+            GROUP BY 
+                ta.name
+            ORDER BY 
+                total DESC;
         """)
         result = await self._session.execute(query)
         return result.fetchall()
