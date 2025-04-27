@@ -1,10 +1,14 @@
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
 
 class TestStation:
     # 1. POST - Criação de estação não precisa de fixture
-    def test_create_station(self, authenticated_client: TestClient, parameter_types_fixture):
+    @pytest.mark.asyncio
+    async def test_create_station(
+        self, authenticated_client: TestClient, parameter_types_fixture
+    ):
         data = {
             "name": "Estação Nova",
             "uid": "nova-uid-123",
@@ -13,7 +17,7 @@ class TestStation:
             "address": {"city": "Cuiabá", "state": "MT", "country": "Brasil"},
             "parameter_types": [1 for pt in parameter_types_fixture],
         }
-        response = authenticated_client.post("/stations/", json=data)
+        response = await authenticated_client.post("/stations/", json=data)
         assert response.status_code == status.HTTP_200_OK
 
     # 2. POST - UID existente precisa de uma fixture com uma estação cadastrada

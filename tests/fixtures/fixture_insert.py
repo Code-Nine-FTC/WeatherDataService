@@ -2,19 +2,35 @@ from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from testcontainers.postgres import PostgresContainer
 
-from app.core.models.db_model import Alert, ParameterType, TypeAlert, WeatherStation
-from app.dependency.database import Database
+from app.core.models.db_model import Alert, Base, ParameterType, TypeAlert, WeatherStation
 
 
-# =====================================================
-# Sessão assíncrona de banco de dados
-# =====================================================
 @pytest.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    async with Database().session as session:
-        yield session
+    with PostgresContainer("postgres:16") as postgres:
+        db_url = postgres.get_connection_url().replace("psycopg2", "asyncpg")
+
+        # Cria a engine assíncrona
+        engine = create_async_engine(db_url)
+
+        # Cria as tabelas usando o metadata do Base
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        # Cria a sessão assíncrona
+        async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
+        async with async_session() as session:
+            yield session  # Sessão pronta para uso nos testes
+            await session.rollback()  # Rollback para limpar
+
+        # Limpa as tabelas após os testes (opcional)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
 
 
 # =====================================================
@@ -117,14 +133,6 @@ async def parameter_type_ativo(
 
 
 # =====================================================
-# Fixture: ID de parâmetro que não existe (para testar 404)
-# =====================================================
-@pytest.fixture
-def parameter_type_nao_existente_id() -> int:
-    return 999999  # Um ID suficientemente alto para garantir que não existe
-
-
-# =====================================================
 # Fixture: Tipo de alerta (ligado a um tipo de parâmetro)
 # =====================================================
 @pytest.fixture
@@ -178,7 +186,7 @@ async def alert_station_fixture(
 # Fixture: Alerta completo
 # =====================================================
 @pytest.fixture
-async def alert(
+async def alert_fixture(
     db_session: AsyncSession,
     alert_station_fixture: WeatherStation,
     alert_type_fixture: TypeAlert,
