@@ -17,7 +17,7 @@ class DashboardController:
         self._service = DashboardService(session)
 
     async def get_station_history(
-        self, station_id: int | None = None
+        self, station_id: int
     ) -> BasicResponse[list[StationHistoryItem]]:
         try:
             data = await self._service.get_station_history(station_id)

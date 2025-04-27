@@ -7,8 +7,8 @@ class DashboardService:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def get_station_history(self, station_id: int | None = None) -> list[Row]:
-        base_query = """
+    async def get_station_history(self, station_id: int) -> list[Row]:
+        base_query = text("""
             SELECT
                 m.value,
                 m.measure_date,
@@ -17,23 +17,11 @@ class DashboardService:
             FROM measures m
             JOIN parameters p ON m.parameter_id = p.id
             JOIN parameter_types pt ON p.parameter_type_id = pt.id
-        """
+            WHERE p.station_id = :station_id
+            ORDER BY m.measure_date DESC
+        """)
 
-        params = {}
-
-        query_string = base_query
-
-        if station_id is not None:
-            query_string += " WHERE p.station_id = :station_id"
-            params = {"station_id": station_id}
-        else:
-            query_string = base_query
-
-        query_string += " ORDER BY m.measure_date DESC "
-
-        query = text(query_string)
-
-        result = await self._session.execute(query, params)
+        result = await self._session.execute(base_query, {"station_id": station_id})
         return result.fetchall()
 
     async def get_alert_type_distribution(self) -> list[Row]:

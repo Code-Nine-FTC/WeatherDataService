@@ -15,9 +15,9 @@ from app.schemas.dashboard import (
 router = APIRouter(tags=["Dashboard"], prefix="/dashboard")
 
 
-@router.get("/station-history", response_model=BasicResponse[list[StationHistoryItem]])
+@router.get("/station-history/{station_id}", response_model=BasicResponse[list[StationHistoryItem]])
 async def get_station_history(
-    station_id: int | None = Query(default=None, description="Optional station ID"),
+    station_id: int,
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[StationHistoryItem]]:
     return await DashboardController(session).get_station_history(station_id)
