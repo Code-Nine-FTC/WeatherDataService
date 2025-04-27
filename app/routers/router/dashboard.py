@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency.database import SessionConnection
@@ -15,7 +15,9 @@ from app.schemas.dashboard import (
 router = APIRouter(tags=["Dashboard"], prefix="/dashboard")
 
 
-@router.get("/station-history/{station_id}", response_model=BasicResponse[list[StationHistoryItem]])
+@router.get(
+    "/station-history/{station_id}", response_model=BasicResponse[list[StationHistoryItem]]
+)
 async def get_station_history(
     station_id: int,
     session: AsyncSession = Depends(SessionConnection.session),

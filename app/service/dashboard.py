@@ -28,14 +28,16 @@ class DashboardService:
         query = text("""
             SELECT
                 ta.name AS name,
-                COUNT(a.id) AS total
+                COALESCE(COUNT(a.id), 0) AS total
             FROM
                 type_alerts ta
             LEFT JOIN
-                alerts a ON a.type_alert_id = ta.id
+                alerts a ON a.type_alert_id = ta.id AND a.is_read = false
+            WHERE
+                ta.is_active = true AND ta.status = 'R' OR ta.status = 'Y'
             GROUP BY
                 ta.name
-            ORDER BY 
+            ORDER BY
                 total DESC
         """)
         result = await self._session.execute(query)
@@ -47,19 +49,19 @@ class DashboardService:
                 "SELECT COUNT(*) AS total "
                 "FROM alerts a "
                 "JOIN type_alerts ta ON a.type_alert_id = ta.id "
-                "WHERE ta.status = 'R';"
+                "WHERE ta.status = 'R' AND a.is_read = false;"
             ),
             "Y": (
                 "SELECT COUNT(*) AS total "
                 "FROM alerts a "
                 "JOIN type_alerts ta ON a.type_alert_id = ta.id "
-                "WHERE ta.status = 'Y';"
+                "WHERE ta.status = 'Y' AND a.is_read = false"
             ),
             "G": (
                 "SELECT COUNT(*) AS total "
                 "FROM alerts a "
                 "JOIN type_alerts ta ON a.type_alert_id = ta.id "
-                "WHERE ta.status = 'G';"
+                "WHERE ta.status = 'G' AND a.is_read = false"
             ),
         }
         counts = {}
