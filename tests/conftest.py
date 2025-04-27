@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 from app.modules.security import TokenManager
 from main import app
 
-# Importa as fixtures necessárias
 from tests.fixtures.fixture_user import fake_user  # noqa: F401
 
 
