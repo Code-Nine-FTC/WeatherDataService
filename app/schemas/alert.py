@@ -23,5 +23,5 @@ class AlertResponse(BaseModel):
 
 
 class AlertFilterSchema(BaseModel):
-    alert_type_id: int | None = None
-    station_id: int | None = None
+    type_alert_name: str | None = None
+    station_name: str | None = None

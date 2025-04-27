@@ -46,15 +46,15 @@ class AlertService:
                 ON ws.id = p.station_id
             WHERE 1=1
             AND ta.is_active = true
-            AND a.is_read = false;
-            {"and ta.id = :alert_type_id" if filters and filters.alert_type_id else ""}
-            {"and ws.id = :station_id" if filters and filters.station_id else ""}
+            AND a.is_read = false
+            {"AND ta.name ILIKE :type_alert_name" if filters and filters.type_alert_name else ""}
+            {"AND ws.name ILIKE :station_name" if filters and filters.station_name else ""}
             """
         )
-        if filters and filters.alert_type_id:
-            query = query.bindparams(alert_type_id=filters.alert_type_id)
-        if filters and filters.station_id:
-            query = query.bindparams(station_id=filters.station_id)
+        if filters and filters.type_alert_name:
+            query = query.bindparams(type_alert_name=f"%{filters.type_alert_name}%")
+        if filters and filters.station_name:
+            query = query.bindparams(station_name=f"%{filters.station_name}%")
 
         result = await self._session.execute(query)
         alerts = result.fetchall()
