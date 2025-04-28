@@ -4,18 +4,22 @@ from typing import AsyncGenerator
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from testcontainers.postgres import PostgresContainer
 
+from app.config.settings import settings
 from app.core.models.db_model import Alert, Base, ParameterType, TypeAlert, WeatherStation
+from app.dependency.database import Database
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     with PostgresContainer("postgres:16") as postgres:
         db_url = postgres.get_connection_url().replace("psycopg2", "asyncpg")
-
+        settings.DATABASE_URL = db_url
+        settings.TEST_ENV = True
         # Cria a engine assíncrona
-        engine = create_async_engine(db_url)
+        engine = create_async_engine(db_url, poolclass=NullPool)
 
         # Cria as tabelas usando o metadata do Base
         async with engine.begin() as conn:
@@ -24,9 +28,8 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         # Cria a sessão assíncrona
         async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
-        async with async_session() as session:
-            yield session  # Sessão pronta para uso nos testes
-            await session.rollback()  # Rollback para limpar
+        async with Database().session as session:
+                yield session
 
         # Limpa as tabelas após os testes (opcional)
         async with engine.begin() as conn:

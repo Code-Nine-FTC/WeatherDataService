@@ -8,7 +8,6 @@ from sqlalchemy.future import select
 
 from app.core.models.db_model import User
 from app.modules.security import PasswordManager
-from tests.fixtures.fixture_insert import db_session
 
 
 @pytest_asyncio.fixture
@@ -21,6 +20,7 @@ async def fake_user(db_session: AsyncSession) -> AsyncGenerator[User, None]:
         hashed_password = PasswordManager().password_hash("123")
         user = User(name="test_user", email="test_user@example.com", password=hashed_password)
         db_session.add(user)
+        await db_session.flush()
         await db_session.commit()
 
     yield user

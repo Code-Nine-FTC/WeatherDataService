@@ -1,3 +1,4 @@
+
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -17,7 +18,7 @@ class TestStation:
             "address": {"city": "Cuiabá", "state": "MT", "country": "Brasil"},
             "parameter_types": [1 for pt in parameter_types_fixture],
         }
-        response = await authenticated_client.post("/stations/", json=data)
+        response = authenticated_client.post("/stations/", json=data)
         assert response.status_code == status.HTTP_200_OK
 
     # 2. POST - UID existente precisa de uma fixture com uma estação cadastrada

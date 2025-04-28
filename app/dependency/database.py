@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 from sqlalchemy.pool import NullPool
 
-from app.config.settings import Settings
+from app.config.settings import settings
 from app.modules.common import Singleton
 
 
@@ -30,8 +30,8 @@ class Database(metaclass=Singleton):
 
     def _create_engine(self) -> async_sessionmaker[AsyncSession]:  # noqa: PLR6301
         return create_async_engine(
-            Settings().DATABASE_URL,  # type: ignore[return-value, call-arg]
-            poolclass=NullPool if Settings().TEST_ENV else None,  # type: ignore[return-value, call-arg]
+            settings.DATABASE_URL,  # type: ignore[return-value, call-arg]
+            poolclass=NullPool if settings.TEST_ENV else None,  # type: ignore[return-value, call-arg]
         )
 
     def _create_session_factory(self) -> async_sessionmaker[AsyncSession]:

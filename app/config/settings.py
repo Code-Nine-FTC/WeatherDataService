@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     TEST_ENV: bool = False
+    DATABASE_URL_TEST: str
 
 
 settings = Settings()  # type: ignore[call-arg]
