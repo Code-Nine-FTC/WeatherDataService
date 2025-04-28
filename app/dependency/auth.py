@@ -20,9 +20,7 @@ class AuthManager:
     ) -> UserResponse:
         setting = Settings()  # type: ignore[call-arg]
         try:
-            payoad = decode(
-                token, setting.SECRET_KEY, algorithms=[setting.ALGORITHM]
-            )
+            payoad = decode(token, setting.SECRET_KEY, algorithms=[setting.ALGORITHM])
 
             user = (
                 await UserService(session).get_user_by_id(int(payoad.get("sub")))

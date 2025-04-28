@@ -22,14 +22,12 @@ async def get_filtered_alerts(
     return await AlertController(session).get_filtered_alerts(filters)
 
 
-@router_alert.delete(
-    "/{alert_id}", dependencies=[Depends(AuthManager.has_authorization)]
-)
-async def delete_alert(
+@router_alert.patch("/{alert_id}", dependencies=[Depends(AuthManager.has_authorization)])
+async def read_alert(
     alert_id: int,
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[None]:
-    return await AlertController(session).delete_alert(alert_id)
+    return await AlertController(session).read_alert(alert_id)
 
 
 @router_alert.get("/{alert_id}")

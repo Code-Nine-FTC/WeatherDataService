@@ -30,9 +30,9 @@ class AlertController:
                 detail="Erro interno no servidor, tente novamente mais tarde.",
             )
 
-    async def delete_alert(self, alert_id: int) -> BasicResponse[None]:
+    async def read_alert(self, alert_id: int) -> BasicResponse[None]:
         try:
-            await self._service.delete_alert(alert_id)
+            await self._service.read_alert(alert_id)
             return BasicResponse(data=None)
         except HTTPException as http_ex:
             await self._session.rollback()

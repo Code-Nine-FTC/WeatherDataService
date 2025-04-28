@@ -14,19 +14,7 @@ class ConvertDates:
 
     @staticmethod
     def unix_to_datetime(unixtime: int) -> datetime:
-        return (
-            datetime.utcfromtimestamp(unixtime)
-            if isinstance(unixtime, int)
-            else None
-        )
-
-    @staticmethod
-    def datetime_to_unix(date: datetime) -> int:
-        if isinstance(date, datetime):
-            if date.tzinfo is not None:
-                date = date.astimezone(datetime.timezone.utc).replace(tzinfo=None)
-            return int(date.timestamp())
-        return None
+        return datetime.utcfromtimestamp(unixtime) if isinstance(unixtime, int) else None
 
 
 class Singleton(type):

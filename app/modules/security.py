@@ -23,9 +23,7 @@ class TokenManager:
         self.__settings = Settings()  # type: ignore[call-arg]
         self.__algorithm = self.__settings.ALGORITHM
         self.__secret_key = self.__settings.SECRET_KEY
-        self.__access_token_expire_minutes = (
-            self.__settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+        self.__access_token_expire_minutes = self.__settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
     def create_access_token(self, data: UserResponse) -> str:
         expire = datetime.now().astimezone() + timedelta(

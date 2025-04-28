@@ -1,14 +1,16 @@
-from typing import Any, Dict, Optional
-
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.basic_response import BasicResponse
 from app.schemas.parameter_type import (
     CreateParameterType,
+    FilterParameterType,
     ParameterTypeResponse,
+    UpdateParameterType,
 )
-from app.service.parameter_type import FilterParameterType, ParameterTypeService
+from app.service.parameter_type import (
+    ParameterTypeService,
+)
 
 
 class ParameterTypeController:
@@ -16,9 +18,7 @@ class ParameterTypeController:
         self._service = ParameterTypeService(session)
         self._session = session
 
-    async def create_parameter_type(
-        self, data: CreateParameterType
-    ) -> BasicResponse[None]:
+    async def create_parameter_type(self, data: CreateParameterType) -> BasicResponse[None]:
         try:
             await self._service.create_parameter_type(data)
             return BasicResponse[None](data=None)
@@ -52,27 +52,28 @@ class ParameterTypeController:
     async def update_parameter_type(
         self,
         parameter_type_id: int,
-        data: Dict[str, Any],  # Especifica os tipos do dicionário
-    ) -> None:
-        await self._service.update_parameter_type(parameter_type_id, data)
+        data: UpdateParameterType,
+    ) -> BasicResponse[None]:
+        try:
+            await self._service.update_parameter_type(parameter_type_id, data)
+            return BasicResponse[None](data=None)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise e
 
     async def get_parameter_type(
         self, parameter_type_id: int
     ) -> BasicResponse[ParameterTypeResponse]:
         try:
             parameter_type = await self._service.get_parameter_type(parameter_type_id)
-            return BasicResponse[ParameterTypeResponse](data= parameter_type)
+            return BasicResponse[ParameterTypeResponse](data=parameter_type)
         except HTTPException as http_ex:
             raise http_ex
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Erro interno ao obter o tipo de parâmetro: {str(e)}",
-            )
+            raise e
 
-    async def disable_parameter_type(
-        self, parameter_type_id: int
-    ) -> BasicResponse[None]:
+    async def disable_parameter_type(self, parameter_type_id: int) -> BasicResponse[None]:
         try:
             await self._service.delete_parameter_type(parameter_type_id)
             return BasicResponse[None](data=None)

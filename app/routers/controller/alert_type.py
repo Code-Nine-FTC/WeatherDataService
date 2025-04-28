@@ -17,9 +17,7 @@ class AlertTypeController:
         self._session = session
         self._service = AlertTypeService(session)
 
-    async def create_alert_type(
-        self, alert_type_data: AlertTypeCreate
-    ) -> BasicResponse[None]:
+    async def create_alert_type(self, alert_type_data: AlertTypeCreate) -> BasicResponse[None]:
         try:
             await self._service.create_alert_type(alert_type_data)
             return BasicResponse[None](data=None)
@@ -47,9 +45,7 @@ class AlertTypeController:
                 detail="Erro interno no servidor, tente novamente mais tarde.",
             )
 
-    async def get_alert_type(
-        self, alert_type_id: int
-    ) -> BasicResponse[AlertTypeResponse]:
+    async def get_alert_type(self, alert_type_id: int) -> BasicResponse[AlertTypeResponse]:
         try:
             alert_type = await self._service.get_alert_type(alert_type_id)
             return BasicResponse[AlertTypeResponse](data=alert_type)

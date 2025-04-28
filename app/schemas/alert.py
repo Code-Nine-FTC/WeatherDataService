@@ -12,18 +12,16 @@ class RequestAlert(BaseModel):
 
 class AlertResponse(BaseModel):
     id: int
-    measure_value: str
+    measure_value: float
     type_alert_name: str
     station_name: str
-    create_date: datetime | int
+    create_date: datetime
 
     @field_validator("create_date", mode="before")
-    def parse_create_date(cls, value) -> datetime:
-        return (
-            ConvertDates.unix_to_datetime(value) if isinstance(value, int) else value
-        )
+    def parse_create_date(cls, value: int) -> datetime:
+        return ConvertDates.unix_to_datetime(value) if isinstance(value, int) else value
 
 
 class AlertFilterSchema(BaseModel):
-    alert_type_id: int | None = None
-    station_id: int | None = None
+    type_alert_name: str | None = None
+    station_name: str | None = None

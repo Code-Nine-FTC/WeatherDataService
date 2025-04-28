@@ -1,5 +1,5 @@
 [tool.ruff]
-line-length = 85
+line-length = 95
 indent-width = 4
 extend-exclude = ['alembic']
 exclude = [
@@ -31,6 +31,12 @@ exclude = [
     "venv",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = "-p no:warnings"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
 [tool.ruff.lint]
 preview = true
 select = ["E", "F", "W", "I", "PL", "PT", "R"]
@@ -42,6 +48,14 @@ preview = true
 quote-style = "double"
 indent-style = "space"
 
+[tool.taskipy.tasks]
+run = 'fastapi dev main.py'
+pre_test = 'task lint'
+test = 'pytest --cov=app -vv'
+post_test = 'coverage html'
+lint = 'ruff check . && ruff check . --diff'
+format = 'ruff check . --fix && ruff  format .'
+
 [tool.mypy]
 ignore_missing_imports = true
 strict = true
@@ -49,6 +63,4 @@ warn_return_any = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
 disallow_any_unimported = true
-exclude = "alembic/*"
-
-
+exclude = "(?x)(^\\.alembic/.*$)"

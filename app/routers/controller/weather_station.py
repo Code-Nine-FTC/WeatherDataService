@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError  # ✅ Import necessário para tratar conflito
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.basic_response import BasicResponse
 from app.schemas.weather_station import (
     FilterWeatherStation,
+    PameterByStation,
     WeatherStationCreate,
     WeatherStationResponse,
     WeatherStationResponseList,
     WeatherStationUpdate,
-    PameterByStation
 )
 from app.service.weather_station import WeatherStationService
 
@@ -19,12 +20,16 @@ class WeatherStationController:
         self._session = session
         self._service = WeatherStationService(session)
 
-    async def create_station(
-        self, data: WeatherStationCreate
-    ) -> BasicResponse[None]:
+    async def create_station(self, data: WeatherStationCreate) -> BasicResponse[None]:
         try:
             await self._service.create_station(data)
             return BasicResponse(data=None)
+        except IntegrityError:
+            await self._session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Já existe uma estação com esse UID.",
+            )
         except HTTPException as e:
             raise e
         except Exception as e:
@@ -42,22 +47,6 @@ class WeatherStationController:
         except HTTPException as e:
             raise e
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Erro interno: {str(e)}",
-            )
-
-    async def remove_parameter(
-        self, station_id: int, parameter_id: int
-    ) -> BasicResponse[None]:
-        try:
-            await self._service.remove_parameter(station_id, parameter_id)
-            return BasicResponse[None](data=None)
-        except HTTPException as http_ex:
-            await self._session.rollback()
-            raise http_ex
-        except Exception as e:
-            await self._session.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Erro interno: {str(e)}",

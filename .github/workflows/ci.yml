@@ -13,8 +13,8 @@ on:
       - develop
 
 jobs:
-  test:
-    name: Testes e Linting
+  setup:
+    name: Setup
     runs-on: ubuntu-latest
 
     services:
@@ -36,7 +36,7 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
 
     steps:
-      - name: Checkout do código com submódulos
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: recursive

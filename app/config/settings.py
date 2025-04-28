@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,6 +12,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
+    TEST_ENV: bool = False
 
 
 settings = Settings()  # type: ignore[call-arg]

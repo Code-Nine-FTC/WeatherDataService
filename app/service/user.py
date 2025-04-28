@@ -24,9 +24,7 @@ class UserService:
         return UserResponse(**user._asdict())
 
     async def get_user_by_id(self, user_id: int) -> UserResponse | None:
-        query = text("SELECT * FROM users WHERE id = :id").bindparams(
-            bindparam("id", user_id)
-        )
+        query = text("SELECT * FROM users WHERE id = :id").bindparams(bindparam("id", user_id))
         result = await self._session.execute(query)
         user = result.fetchone()
         return UserResponse(**user._asdict()) if user else None

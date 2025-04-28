@@ -12,3 +12,4 @@ alembic
 alembic.ini
 .mypy_cache
 .env
+mypy.ini
