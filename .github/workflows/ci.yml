@@ -11,42 +11,11 @@ on:
     branches:
       - main
       - develop
-      - feature/*
-      - hotfix/*
 
 jobs:
   setup:
     name: Setup
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Verificar submódulos
-        run: ls -R app/core
-
-      - name: Configurar PYTHONPATH
-        run: echo "PYTHONPATH=$(pwd)/app/core" >> $GITHUB_ENV
-
-      - name: Inicializar e atualizar submódulos
-        run: |
-          git submodule init
-          git submodule update --recursive --remote
-
-  database:
-    name: Database Migrations
-    runs-on: ubuntu-latest
-    needs: setup
 
     services:
       postgres:
@@ -56,7 +25,7 @@ jobs:
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
         ports:
-          - 5440:5432
+          - 5433:5432
         options: >-
           --health-cmd=pg_isready
           --health-interval=10s
@@ -64,117 +33,105 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5440/testdb
+      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
-
-      - name: Instalar Dependências
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+      
+      - name: Inicializar e atualizar submódulos corretamente
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          sudo apt-get update
-          sudo apt-get install -y python3-dev postgresql-client
-          pip install alembic sqlalchemy asyncpg
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          git submodule init
+          git submodule update --recursive --remote
 
-      - name: Esperar PostgreSQL iniciar
-        run: |
-          for i in {1..10}; do
-            if pg_isready -h localhost -p 5440; then
-              echo "PostgreSQL está pronto"
-              break
-            fi
-            echo "Aguardando PostgreSQL... Tentativa $i/10"
-            sleep 2
-          done
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Reset Database
-        run: |
-          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
-          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "DROP TABLE IF EXISTS alembic_version;"
+      - name: Criar diretório alembic
+        run: alembic init alembic
 
-      - name: Configurar ambiente Alembic
+      - name: Criar alembic.ini
         run: |
-          mkdir -p alembic/versions
-          
-          # Criar env.py usando Python para evitar problemas com caracteres especiais
-          python -c "
+          cat <<EOF > alembic.ini
+          [alembic]
+          script_location = alembic
+          sqlalchemy.url = ${DATABASE_URL}
+          EOF
+
+      - name: Criar alembic/env.py
+        run: |
+          mkdir -p alembic
+          cat <<EOF > alembic/env.py
+          from alembic import context
+          from sqlalchemy import engine_from_config, pool
+          from logging.config import fileConfig
           import os
-          with open('alembic/env.py', 'w') as f:
-              f.write(os.environ['ALEMBIC_ENV'])
-          "
+          import sys
 
-        env:
-          ALEMBIC_ENV: ${{ secrets.ALEMBIC_ENV }}
+          sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+          from app.models import Base  # Ajuste esse import para o caminho correto dos seus modelos
 
-      - name: Verificar arquivos Alembic
-        run: |
-          echo "Conteúdo de alembic.ini:"
-          cat alembic.ini
-          echo -e "\nPrimeiras 10 linhas de env.py:"
-          head -n 10 alembic/env.py
+          config = context.config
 
-      - name: Aplicar Migrações
-        run: |
-          source .venv/bin/activate
-          alembic revision --autogenerate -m "Initial migration"
-          timeout 300 alembic upgrade head || (echo "Migration timeout exceeded" && exit 1)
+          if config.config_file_name is not None:
+              fileConfig(config.config_file_name)
 
-      - name: Verificar Tabelas
-        run: |
-          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "\dt"
-          PGPASSWORD=testpass psql -h localhost -p 5440 -U testuser -d testdb -c "SELECT * FROM alembic_version;"
+          target_metadata = Base.metadata
 
-  test:
-    name: Testes
-    runs-on: ubuntu-latest
-    needs:
-      - setup
-      - database
+          def run_migrations_offline():
+              url = config.get_main_option("sqlalchemy.url")
+              context.configure(
+                  url=url,
+                  target_metadata=target_metadata,
+                  literal_binds=True,
+                  dialect_opts={"paramstyle": "named"},
+              )
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+              with context.begin_transaction():
+                  context.run_migrations()
 
-      - name: Setup Python
+          def run_migrations_online():
+              connectable = engine_from_config(
+                  config.get_section(config.config_ini_section),
+                  prefix='sqlalchemy.',
+                  poolclass=pool.NullPool,
+              )
+
+              with connectable.connect() as connection:
+                  context.configure(
+                      connection=connection,
+                      target_metadata=target_metadata
+                  )
+
+                  with context.begin_transaction():
+                      context.run_migrations()
+
+          if context.is_offline_mode():
+              run_migrations_offline()
+          else:
+              run_migrations_online()
+          EOF
+
+      - name: Run Alembic Migrations
+        run: alembic -c alembic.ini upgrade head
+
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
-      - name: Instalar Dependências
+      - name: Install dependencies
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Rodar Testes
-        run: task test
+      - name: Run tests
+        run: pytest --cov=app -vv
 
-  lint:
-    name: Linting
-    runs-on: ubuntu-latest
-    needs:
-      - setup
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Instalar Ruff
-        run: pip install ruff
-
-      - name: Rodar Ruff
-        run: ruff check .
+      - name: Generate coverage report
+        if: always()
+        run: coverage html
