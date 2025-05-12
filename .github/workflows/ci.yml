@@ -1,137 +1,49 @@
-name: CI
+name: Main Pipeline
 
 on:
   push:
     branches:
-      - main
-      - develop
-      - feature/*
-      - hotfix/*
+      - feature/**
+      - hotfix/**
   pull_request:
     branches:
       - main
       - develop
+      - feature/**
+      - hotfix/**
 
 jobs:
-  setup:
-    name: Setup
-    runs-on: ubuntu-latest
+  commit-check:
+    if: contains(github.ref, 'feature/') || contains(github.ref, 'hotfix/')
+    uses: ./.github/workflows/verify-commit.yml
+    secrets: inherit
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd=pg_isready
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+  lint:
+    if: contains(github.ref, 'feature/') || contains(github.ref, 'hotfix/')
+    needs: commit-check
+    uses: ./.github/workflows/verify-lint.yml
+    secrets: inherit
 
-    env:
-      DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
+  unit-tests:
+    if: contains(github.ref, 'feature/') || contains(github.ref, 'hotfix/')
+    needs: lint
+    uses: ./.github/workflows/execute-tests.yml
+    secrets: inherit
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
-      
-      - name: Inicializar e atualizar submódulos corretamente
-        run: |
-          git submodule init
-          git submodule update --recursive --remote
+  build-test-pr:
+    if: github.event_name == 'pull_request' && (contains(github.head_ref, 'feature/') || contains(github.head_ref, 'hotfix/') || github.base_ref == 'develop')
+    needs: unit-tests
+    uses: ./.github/workflows/build-app.yml
+    secrets: inherit
 
-      - name: Checkout code
-        uses: actions/checkout@v3
+  # Jobs para merge na main
+  build-main:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    uses: ./.github/workflows/build-app.yml
+    secrets: inherit
 
-      - name: Criar diretório alembic
-        run: alembic init alembic
-
-      - name: Criar alembic.ini
-        run: |
-          cat <<EOF > alembic.ini
-          [alembic]
-          script_location = alembic
-          sqlalchemy.url = ${DATABASE_URL}
-          EOF
-
-      - name: Criar alembic/env.py
-        run: |
-          mkdir -p alembic
-          cat <<EOF > alembic/env.py
-          from alembic import context
-          from sqlalchemy import engine_from_config, pool
-          from logging.config import fileConfig
-          import os
-          import sys
-
-          sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-          from app.models import Base  # Ajuste esse import para o caminho correto dos seus modelos
-
-          config = context.config
-
-          if config.config_file_name is not None:
-              fileConfig(config.config_file_name)
-
-          target_metadata = Base.metadata
-
-          def run_migrations_offline():
-              url = config.get_main_option("sqlalchemy.url")
-              context.configure(
-                  url=url,
-                  target_metadata=target_metadata,
-                  literal_binds=True,
-                  dialect_opts={"paramstyle": "named"},
-              )
-
-              with context.begin_transaction():
-                  context.run_migrations()
-
-          def run_migrations_online():
-              connectable = engine_from_config(
-                  config.get_section(config.config_ini_section),
-                  prefix='sqlalchemy.',
-                  poolclass=pool.NullPool,
-              )
-
-              with connectable.connect() as connection:
-                  context.configure(
-                      connection=connection,
-                      target_metadata=target_metadata
-                  )
-
-                  with context.begin_transaction():
-                      context.run_migrations()
-
-          if context.is_offline_mode():
-              run_migrations_offline()
-          else:
-              run_migrations_online()
-          EOF
-
-      - name: Run Alembic Migrations
-        run: alembic -c alembic.ini upgrade head
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests
-        run: pytest --cov=app -vv
-
-      - name: Generate coverage report
-        if: always()
-        run: coverage html
+  test-main:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    needs: build-main
+    uses: ./.github/workflows/execute-tests.yml
+    secrets: inherit
