@@ -34,7 +34,7 @@ class DashboardService:
             LEFT JOIN
                 alerts a ON a.type_alert_id = ta.id AND a.is_read = false
             WHERE
-                ta.is_active = true AND ta.status = 'R' OR ta.status = 'Y'
+                ta.is_active = true
             GROUP BY
                 ta.name
             ORDER BY
