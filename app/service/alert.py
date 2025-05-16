@@ -34,7 +34,7 @@ class AlertService:
                 m.value AS measure_value,
                 ws."name" AS station_name,
                 ta."name" AS type_alert_name,
-                a.create_date
+                to_timestamp(a.create_date) AS create_date
             FROM alerts a
             JOIN measures m
                 ON m.id = a.measure_id
@@ -68,7 +68,7 @@ class AlertService:
                 m.value as measure_value,
                 ws."name" as station_name,
                 ta."name" as type_alert_name,
-                a.create_date
+                to_timestamp(a.create_date) as create_date
             from alerts a
             join measures m
                 on m.id = a.measure_id
