@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # Ou a branch que você quiser
+      - main
 
 jobs:
   deploy:
@@ -25,9 +25,11 @@ jobs:
           cd /home/ubuntu/app
           git pull origin main
 
+          echo "Parando e removendo containers e imagens antigas"
           docker container stop weather_data_service_container || true
           docker container rm weather_data_service_container || true
           docker image prune -y || true
 
+          echo "Construindo nova imagem e rodando novo container"
           docker build -t weather_data_service:${{ github.sha }} .
           docker run -d --name weather_data_service_container -p 8000:8000 weather_data_service
