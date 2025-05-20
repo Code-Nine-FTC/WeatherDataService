@@ -2,10 +2,11 @@ from pydantic import BaseModel
 
 
 class StationHistoryItem(BaseModel):
-    name: str
+    title: str
     value: float
     measure_unit: str
     measure_date: int
+    type: str 
 
 
 class AlertTypeDistributionItem(BaseModel):
