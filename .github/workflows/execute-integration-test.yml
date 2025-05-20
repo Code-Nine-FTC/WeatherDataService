@@ -1,24 +1,22 @@
-name: Verify Lint
+name: Execute Integration Tests
 
 on: 
   workflow_call:
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-          
-      - name: Install Lint Tools
+
+      - name: Install dependencies
         run: pip install -r requirements.txt
-          
-      - name: Run Ruff
-        run: ruff check .
-        
-      - name: Run Mypy
-        run: mypy .
+
+      - name: Run tests
+        run: task test
