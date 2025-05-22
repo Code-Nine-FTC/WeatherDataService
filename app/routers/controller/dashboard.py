@@ -30,9 +30,10 @@ class DashboardController:
 
     async def get_alert_type_distribution(
         self,
+        station_id: int | None = None,
     ) -> BasicResponse[list[AlertTypeDistributionItem]]:
         try:
-            data = await self._service.get_alert_type_distribution()
+            data = await self._service.get_alert_type_distribution(station_id)
             return BasicResponse(
                 data=[AlertTypeDistributionItem(**row._asdict()) for row in data]
             )
@@ -42,9 +43,9 @@ class DashboardController:
                 detail=f"Erro ao buscar distribuição de alertas: {str(e)}",
             )
 
-    async def get_alert_counts(self) -> BasicResponse[AlertCounts]:
+    async def get_alert_counts(self, station_id: int | None = None) -> BasicResponse[AlertCounts]:
         try:
-            data = await self._service.get_alert_counts()
+            data = await self._service.get_alert_counts(station_id)
             return BasicResponse(data=AlertCounts(**data))
         except Exception as e:
             raise HTTPException(

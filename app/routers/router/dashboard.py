@@ -29,16 +29,18 @@ async def get_station_history(
 
 @router.get("/alert-types", response_model=BasicResponse[list[AlertTypeDistributionItem]])
 async def get_alert_type_distribution(
+    station_id: int | None = Query(default=None, description="ID da estação"),
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[AlertTypeDistributionItem]]:
-    return await DashboardController(session).get_alert_type_distribution()
+    return await DashboardController(session).get_alert_type_distribution(station_id)
 
 
 @router.get("/alert-counts", response_model=BasicResponse[AlertCounts])
 async def get_alert_counts(
+    station_id: int | None = Query(default=None, description="ID da estação"),
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[AlertCounts]:
-    return await DashboardController(session).get_alert_counts()
+    return await DashboardController(session).get_alert_counts(station_id)
 
 
 @router.get("/station-status", response_model=BasicResponse[StationStatus])

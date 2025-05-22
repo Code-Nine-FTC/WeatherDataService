@@ -59,49 +59,77 @@ class DashboardService:
         result = await self._session.execute(query, final_params)
         return result.fetchall()
 
-    async def get_alert_type_distribution(self) -> list[Row]:
-        query = text("""
+    async def get_alert_type_distribution(self, station_id: int | None = None) -> list[Row]:
+        params = {}
+        sql_query = """
             SELECT
                 ta.name AS name,
                 COALESCE(COUNT(a.id), 0) AS total
             FROM
                 type_alerts ta
+            JOIN 
+                parameters p ON ta.parameter_id = p.id
             LEFT JOIN
                 alerts a ON a.type_alert_id = ta.id AND a.is_read = false
-            WHERE
-                ta.is_active = true
+        """
+        
+        where_clauses = ["ta.is_active = true"]
+
+        if station_id is not None:
+            where_clauses.append("p.station_id = :station_id")
+            params["station_id"] = station_id
+        
+        if where_clauses:
+            sql_query += " WHERE " + " AND ".join(where_clauses)
+            
+        sql_query += """
             GROUP BY
                 ta.name
             ORDER BY
                 total DESC
-        """)
-        result = await self._session.execute(query)
+        """
+        
+        query = text(sql_query)
+        result = await self._session.execute(query, params)
         return result.fetchall()
 
-    async def get_alert_counts(self) -> dict[str, int]:
+    async def get_alert_counts(self, station_id) -> dict[str, int]:
+
+        base_params = {}
+
+        station_join_clause = ""
+        station_where_clause = ""
+        if station_id is not None:
+            station_join_clause = " JOIN parameters p ON ta.parameter_id = p.id"
+            station_where_clause = " AND p.station_id = :station_id"
+            base_params["station_id"] = station_id
+
         queries = {
             "R": (
                 "SELECT COUNT(*) AS total "
                 "FROM alerts a "
                 "JOIN type_alerts ta ON a.type_alert_id = ta.id "
-                "WHERE ta.status = 'R' AND a.is_read = false;"
+                f"{station_join_clause} "
+                f"WHERE ta.status = 'R' AND a.is_read = false{station_where_clause}"
             ),
             "Y": (
                 "SELECT COUNT(*) AS total "
                 "FROM alerts a "
                 "JOIN type_alerts ta ON a.type_alert_id = ta.id "
-                "WHERE ta.status = 'Y' AND a.is_read = false"
+                f"{station_join_clause} "
+                f"WHERE ta.status = 'Y' AND a.is_read = false{station_where_clause}"
             ),
             "G": (
                 "SELECT COUNT(*) AS total "
                 "FROM alerts a "
                 "JOIN type_alerts ta ON a.type_alert_id = ta.id "
-                "WHERE ta.status = 'G' AND a.is_read = false"
+                f"{station_join_clause} "
+                f"WHERE ta.status = 'G' AND a.is_read = false{station_where_clause}"
             ),
         }
         counts = {}
         for key, query in queries.items():
-            result = await self._session.execute(text(query))
+            result = await self._session.execute(text(query), base_params)
             counts[key] = result.scalar()
         return counts
 
