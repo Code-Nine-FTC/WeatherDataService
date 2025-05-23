@@ -1,0 +1,36 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy App
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: SSH and Deploy
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          mkdir /home/ubuntu/app
+          cd /home/ubuntu/app
+          git pull origin main
+
+          echo "Parando e removendo containers e imagens antigas"
+          docker container stop weather_data_service_container || true
+          docker container rm weather_data_service_container || true
+          docker image rm weather_data_service || true
+          docker system prune -f || true
+
+          echo "Construindo nova imagem e rodando novo container"
+          docker build -t weather_data_service:${{ github.sha }} .
+          docker run -d --name weather_data_service_container -p 8000:8000 --restart unless-stopped weather_data_service

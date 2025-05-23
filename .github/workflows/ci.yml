@@ -11,6 +11,7 @@ on:
       - develop
       - feature/**
       - hotfix/**
+      - release
 
 jobs:
   commit-check:
@@ -27,23 +28,11 @@ jobs:
   unit-tests:
     if: contains(github.ref, 'feature/') || contains(github.ref, 'hotfix/')
     needs: lint
-    uses: ./.github/workflows/execute-tests.yml
+    uses: ./.github/workflows/execute-unit-tests.yml
     secrets: inherit
 
-  build-test-pr:
-    if: github.event_name == 'pull_request' && (contains(github.head_ref, 'feature/') || contains(github.head_ref, 'hotfix/') || github.base_ref == 'develop')
+  integration-tests:
+    if: (contains(github.ref, 'develop/') || contains(github.ref, 'release/')) && github.event_name == 'pull_request'
     needs: unit-tests
-    uses: ./.github/workflows/build-app.yml
-    secrets: inherit
-
-  # Jobs para merge na main
-  build-main:
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    uses: ./.github/workflows/build-app.yml
-    secrets: inherit
-
-  test-main:
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    needs: build-main
-    uses: ./.github/workflows/execute-tests.yml
+    uses: ./.github/workflows/execute-integration-tests.yml
     secrets: inherit
