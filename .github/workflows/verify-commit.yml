@@ -1,10 +1,11 @@
 name: Check Commit Message  
 
-on: workflow_call
+on:
+  workflow_call:
 
 jobs:
-  commit-message-check: 
-    runs-on: ubuntu-latest  
+  verify-commit:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Repository checkout

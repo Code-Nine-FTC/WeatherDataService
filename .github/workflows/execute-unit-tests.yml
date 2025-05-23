@@ -1,6 +1,7 @@
-name: Execute Tests
+name: Execute Unit Tests
 
-on: workflow_call
+on: 
+  workflow_call:
 
 jobs:
   test:
@@ -17,5 +18,5 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run tests
-        run: task test
+      - name: Run Unit Tests
+        run: pytest -v
