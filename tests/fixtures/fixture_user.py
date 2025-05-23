@@ -8,7 +8,6 @@ from sqlalchemy.future import select
 
 from app.core.models.db_model import User
 from app.modules.security import PasswordManager
-from tests.fixtures.fixture_insert import db_session
 
 
 @pytest_asyncio.fixture

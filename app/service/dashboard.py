@@ -1,7 +1,8 @@
+from datetime import datetime, timezone
+
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
-from datetime import datetime, timezone
 
 
 class DashboardService:
@@ -9,9 +10,9 @@ class DashboardService:
         self._session = session
 
     async def get_station_history(
-        self, 
-        station_id: int, 
-        start_date: str | None = None, 
+        self,
+        station_id: int,
+        start_date: str | None = None,
         end_date: str | None = None
     ) -> list[Row]:
 
@@ -26,11 +27,11 @@ class DashboardService:
             JOIN parameters p ON m.parameter_id = p.id
             JOIN parameter_types pt ON p.parameter_type_id = pt.id
         """]
-        
+
         where_conditions = []
         final_params = {"station_id": station_id}
         where_conditions.append("p.station_id = :station_id")
-        
+
         start_epoch = self._parse_date_to_epoch(start_date)
         if start_epoch is not None:
             where_conditions.append("m.measure_date >= :start_date_epoch")
@@ -38,23 +39,23 @@ class DashboardService:
 
         end_epoch = self._parse_date_to_epoch(end_date)
         if end_epoch is not None:
-            if end_date and len(end_date) == 10: 
+            if end_date and len(end_date) == 10:
                 try:
-                    datetime.strptime(end_date, "%Y-%m-%d") 
-                    end_epoch += (24 * 60 * 60) - 1 
+                    datetime.strptime(end_date, "%Y-%m-%d")
+                    end_epoch += (24 * 60 * 60) - 1
                 except ValueError:
                     pass
-            
+
             where_conditions.append("m.measure_date <= :end_date_epoch")
             final_params["end_date_epoch"] = end_epoch
 
         if where_conditions:
             base_query.append("WHERE " + " AND ".join(where_conditions))
-        
+
         base_query.append("ORDER BY m.measure_date DESC")
-        
+
         final_sql_string = " ".join(base_query)
-            
+
         query = text(final_sql_string)
         result = await self._session.execute(query, final_params)
         return result.fetchall()
@@ -67,28 +68,28 @@ class DashboardService:
                 COALESCE(COUNT(a.id), 0) AS total
             FROM
                 type_alerts ta
-            JOIN 
+            JOIN
                 parameters p ON ta.parameter_id = p.id
             LEFT JOIN
                 alerts a ON a.type_alert_id = ta.id AND a.is_read = false
         """
-        
+
         where_clauses = ["ta.is_active = true"]
 
         if station_id is not None:
             where_clauses.append("p.station_id = :station_id")
             params["station_id"] = station_id
-        
+
         if where_clauses:
             sql_query += " WHERE " + " AND ".join(where_clauses)
-            
+
         sql_query += """
             GROUP BY
                 ta.name
             ORDER BY
                 total DESC
         """
-        
+
         query = text(sql_query)
         result = await self._session.execute(query, params)
         return result.fetchall()
@@ -157,7 +158,7 @@ class DashboardService:
         """)
         result = await self._session.execute(query)
         return result.fetchall()
-        
+
     async def get_last_measures(self, station_id: int) -> list[Row]:
         query = text("""
             SELECT
@@ -169,7 +170,7 @@ class DashboardService:
             FROM measures m
             JOIN parameters p ON m.parameter_id = p.id
             JOIN parameter_types pt ON p.parameter_type_id = pt.id
-            WHERE 
+            WHERE
                 p.station_id = :station_id
                 AND m.measure_date = (
                     SELECT MAX(m2.measure_date)

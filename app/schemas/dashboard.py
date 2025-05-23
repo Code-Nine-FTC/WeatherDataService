@@ -6,7 +6,7 @@ class StationHistoryItem(BaseModel):
     value: float
     measure_unit: str
     measure_date: int
-    type: str 
+    type: str
 
 
 class AlertTypeDistributionItem(BaseModel):
