@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 
@@ -13,8 +13,12 @@ class ConvertDates:
         return data
 
     @staticmethod
-    def unix_to_datetime(unixtime: int) -> datetime:
-        return datetime.utcfromtimestamp(unixtime) if isinstance(unixtime, int) else None
+    def unix_to_datetime(unixtime: int) -> datetime | None:
+        return (
+            datetime.fromtimestamp(unixtime, tz=timezone.utc)
+            if isinstance(unixtime, int)
+            else None
+        )
 
 
 class Singleton(type):

@@ -32,9 +32,9 @@ class Database(metaclass=Singleton):
         return create_async_engine(
             Settings().DATABASE_URL,  # type: ignore[return-value, call-arg]
             poolclass=NullPool if Settings().TEST_ENV else None,  # type: ignore[return-value, call-arg]
-            pool_size=150, # 150 para 200 conexões simultâneas
-            max_overflow=50, # 50 para 200 conexões simultâneas
-            pool_timeout=30, 
+            pool_size=150,  # 150 para 200 conexões simultâneas
+            max_overflow=50,  # 50 para 200 conexões simultâneas
+            pool_timeout=30,
             pool_recycle=1800,
         )
 
