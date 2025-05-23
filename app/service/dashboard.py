@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Any, Sequence
 
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +15,7 @@ class DashboardService:
         station_id: int,
         start_date: str | None = None,
         end_date: str | None = None
-    ) -> list[Row]:
+    ) -> Sequence[Row[Any]]:
 
         base_query = ["""
             SELECT
@@ -60,7 +61,7 @@ class DashboardService:
         result = await self._session.execute(query, final_params)
         return result.fetchall()
 
-    async def get_alert_type_distribution(self, station_id: int | None = None) -> list[Row]:
+    async def get_alert_type_distribution(self, station_id: int | None = None) -> Sequence[Row:[Any]]:
         params = {}
         sql_query = """
             SELECT
@@ -94,7 +95,7 @@ class DashboardService:
         result = await self._session.execute(query, params)
         return result.fetchall()
 
-    async def get_alert_counts(self, station_id) -> dict[str, int]:
+    async def get_alert_counts(self, station_id: int | None) -> dict[str, int]:
 
         base_params = {}
 
@@ -142,11 +143,11 @@ class DashboardService:
         active_result = await self._session.execute(text(active_query))
 
         return {
-            "total": total_result.scalar(),
-            "active": active_result.scalar(),
+            "total": total_result.scalar() or 0,
+            "active": active_result.scalar() or 0,
         }
 
-    async def get_measures_status(self) -> list[Row]:
+    async def get_measures_status(self) -> list[Row[Any]]:
         query = text("""
             SELECT
                 pt.name AS label,
@@ -159,7 +160,7 @@ class DashboardService:
         result = await self._session.execute(query)
         return result.fetchall()
 
-    async def get_last_measures(self, station_id: int) -> list[Row]:
+    async def get_last_measures(self, station_id: int) -> list[Row[Any]]:
         query = text("""
             SELECT
                 pt.name AS title,
@@ -179,7 +180,7 @@ class DashboardService:
                 )
         """)
         result = await self._session.execute(query, {"station_id": station_id})
-        return result.fetchall()
+        return list(result.fetchall())
 
     def _parse_date_to_epoch(self, date_str: str | None) -> int | None:
         if date_str is None:
