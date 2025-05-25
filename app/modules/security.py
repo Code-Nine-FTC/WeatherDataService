@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import jwt
 from pwdlib import PasswordHash
+
 from app.config.settings import Settings
 from app.schemas.user import UserResponse
 
