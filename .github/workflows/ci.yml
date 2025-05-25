@@ -36,5 +36,3 @@ jobs:
     needs: unit-tests
     uses: ./.github/workflows/execute-integration-tests.yml
     secrets: inherit
-
-  

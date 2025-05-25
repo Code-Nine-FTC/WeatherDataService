@@ -13,3 +13,4 @@ alembic.ini
 .mypy_cache
 .env
 mypy.ini
+node_modules
