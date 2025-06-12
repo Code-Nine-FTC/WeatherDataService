@@ -1,0 +1,121 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - release/**
+
+jobs:
+  pr-check-develop:
+    name: PR to Develop - Basic Check
+    if: github.base_ref == 'develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Linting
+        run: |
+          echo "🔍 Executando verificações de qualidade de código..."
+          ruff check .
+          mypy .
+
+      - name: Run Integration Tests
+        run: |
+          echo "🔗 Executando testes de integração..."
+          task test
+
+  pr-check-release-main:
+    name: PR to Release/Main - Full Pipeline
+    if: github.base_ref == 'main' || startsWith(github.base_ref, 'release/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run Linting
+        run: |
+          echo "🔍 Executando verificações de qualidade de código..."
+          ruff check .
+          mypy .
+
+      - name: Run tests with coverage for SonarQube
+        run: pytest --cov=. --cov-report=xml
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Run Unit Tests
+        run: |
+          echo "🧪 Executando testes unitários..."
+          pytest tests/unit
+
+      - name: Run Integration Tests
+        run: |
+          echo "🔗 Executando testes de integração..."
+          task test
+
+  commit-validation:
+    name: Commit Message Validation
+    if: startsWith(github.head_ref, 'feature/') || startsWith(github.head_ref, 'hotfix/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          echo "🔍 Verificando mensagens de commit..."
+          commits=$(git log --format=%s origin/${{ github.base_ref }}..${{ github.head_ref }} --no-merges)
+          regex="^(feat|fix|docs|style|refactor|test|chore|build): .+|^Merge .+"
+      
+          echo "$commits" | while IFS= read -r commit; do
+            if [ -n "$commit" ]; then
+              echo "🔍 Commit encontrado: '$commit'"
+              if ! [[ "$commit" =~ $regex ]]; then
+                echo "❌ Commit inválido!: '$commit'"
+                echo "Os commits devem seguir o padrão: 'type: description'"
+                exit 1
+              fi
+            fi
+          done
+          echo "✅ Todos os commits estão válidos!"
