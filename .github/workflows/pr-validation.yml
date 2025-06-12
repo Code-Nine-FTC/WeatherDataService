@@ -1,0 +1,92 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - release/**
+
+jobs:
+  pr-check-develop:
+    name: PR to Develop - Basic Check
+    if: github.base_ref == 'develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Linting
+        run: |
+          echo "🔍 Executando verificações de qualidade de código..."
+          ruff check .
+          mypy .
+
+      - name: Run Integration Tests
+        run: |
+          echo "🔗 Executando testes de integração..."
+          task test
+
+  pr-check-develop-release-main:
+    name: PR to Release/Main - Full Pipeline
+    if: github.base_ref == 'main' || github.base_ref == 'develop' || github.base_ref == 'release'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run Linting
+        run: |
+          echo "🔍 Executando verificações de qualidade de código..."
+          ruff check .
+          mypy .
+
+      - name: Run tests with coverage for SonarQube
+        run: pytest --cov=. --cov-report=xml
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Run Unit Tests
+        run: |
+          echo "🧪 Executando testes unitários..."
+          pytest tests/unit
+
+      - name: Run Integration Tests
+        run: |
+          echo "🔗 Executando testes de integração..."
+          task test

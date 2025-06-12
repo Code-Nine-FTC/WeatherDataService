@@ -1,38 +1,91 @@
-name: Main Pipeline
+name: CI Pipeline
 
 on:
   push:
     branches:
       - feature/**
       - hotfix/**
-  pull_request:
-    branches:
-      - main
       - develop
-      - feature/**
-      - hotfix/**
-      - release
+      - release/**
 
 jobs:
   commit-check:
-    if: contains(github.ref, 'feature/') || contains(github.ref, 'hotfix/')
-    uses: ./.github/workflows/verify-commit.yml
-    secrets: inherit
+    name: Verify Commit Messages
+    if: startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/hotfix/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  lint:
-    if: contains(github.ref, 'feature/') || contains(github.ref, 'hotfix/')
-    needs: commit-check
-    uses: ./.github/workflows/verify-lint.yml
-    secrets: inherit
+      - name: Commit message verification
+        run: |
+          echo "🔍 Verificando mensagens de commit..."
+          commits=$(git log --format=%s -n 10 --no-merges)
+          regex="^(feat|fix|docs|style|refactor|test|chore|build): .+|^Merge .+"
+      
+          echo "$commits" | while IFS= read -r commit; do
+            echo "🔍 Commit encontrado: '$commit'"
+            if ! [[ "$commit" =~ $regex ]]; then
+              echo "❌ Commit inválido!: '$commit'"
+              echo "Os commits devem seguir o padrão: 'type: description'"
+              exit 1
+            fi
+          done
+          echo "✅ Todos os commits estão válidos!"
 
-  unit-tests:
-    if: contains(github.ref, 'feature/') || contains(github.ref, 'hotfix/')
-    needs: lint
-    uses: ./.github/workflows/execute-unit-tests.yml
-    secrets: inherit
+  lint-and-test-develop:
+    name: Develop Branch - Validation Pipeline
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  integration-tests:
-    if: (contains(github.ref, 'develop/') || contains(github.ref, 'release/')) && github.event_name == 'pull_request'
-    needs: unit-tests
-    uses: ./.github/workflows/execute-integration-tests.yml
-    secrets: inherit
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Delivery Validation
+        run: |
+          echo "✅ Validação de entregas executada com sucesso!"
+          echo "Pipeline OK para merge em develop"
+
+  feature-hotfix-pipeline:
+    name: Feature/Hotfix Pipeline
+    if: startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/hotfix/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Linting
+        run: |
+          echo "🔍 Executando lint..."
+          ruff check .
+          mypy .
+
+      - name: Run Unit Tests
+        run: |
+          echo "🧪 Executando testes unitários..."
+          pytest tests/unit

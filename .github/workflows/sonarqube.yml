@@ -1,11 +1,11 @@
-name: Build
+name: SonarQube Analysis
 
 on:
+  workflow_call:
   push:
     branches:
       - main
-      - release
-
+      - develop
 
 jobs:
   sonarqube:
