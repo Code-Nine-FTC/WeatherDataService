@@ -40,9 +40,9 @@ jobs:
           echo "🔗 Executando testes de integração..."
           task test
 
-  pr-check-release-main:
+  pr-check-develop-release-main:
     name: PR to Release/Main - Full Pipeline
-    if: github.base_ref == 'main' || startsWith(github.base_ref, 'release/')
+    if: github.base_ref == 'main' || github.base_ref == 'develop' || github.base_ref == 'release'
     runs-on: ubuntu-latest
     
     steps:
