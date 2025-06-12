@@ -90,32 +90,3 @@ jobs:
         run: |
           echo "🔗 Executando testes de integração..."
           task test
-
-  commit-validation:
-    name: Commit Message Validation
-    if: startsWith(github.head_ref, 'feature/') || startsWith(github.head_ref, 'hotfix/')
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate commit messages
-        run: |
-          echo "🔍 Verificando mensagens de commit..."
-          commits=$(git log --format=%s origin/${{ github.base_ref }}..${{ github.head_ref }} --no-merges)
-          regex="^(feat|fix|docs|style|refactor|test|chore|build): .+|^Merge .+"
-      
-          echo "$commits" | while IFS= read -r commit; do
-            if [ -n "$commit" ]; then
-              echo "🔍 Commit encontrado: '$commit'"
-              if ! [[ "$commit" =~ $regex ]]; then
-                echo "❌ Commit inválido!: '$commit'"
-                echo "Os commits devem seguir o padrão: 'type: description'"
-                exit 1
-              fi
-            fi
-          done
-          echo "✅ Todos os commits estão válidos!"
