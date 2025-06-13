@@ -11,13 +11,10 @@ class DashboardService:
         self._session = session
 
     async def get_station_history(
-        self,
-        station_id: int,
-        start_date: str | None = None,
-        end_date: str | None = None
+        self, station_id: int, start_date: str | None = None, end_date: str | None = None
     ) -> Sequence[Row[Any]]:
-
-        base_query = ["""
+        base_query = [
+            """
             SELECT
                 m.value,
                 m.measure_date,
@@ -27,7 +24,8 @@ class DashboardService:
             FROM measures m
             JOIN parameters p ON m.parameter_id = p.id
             JOIN parameter_types pt ON p.parameter_type_id = pt.id
-        """]
+        """
+        ]
 
         where_conditions = []
         final_params = {"station_id": station_id}
@@ -61,7 +59,9 @@ class DashboardService:
         result = await self._session.execute(query, final_params)
         return result.fetchall()
 
-    async def get_alert_type_distribution(self, station_id: int | None = None) -> Sequence[Row:[Any]]:
+    async def get_alert_type_distribution(
+        self, station_id: int | None = None
+    ) -> Sequence[Row : [Any]]:
         params = {}
         sql_query = """
             SELECT
@@ -96,7 +96,6 @@ class DashboardService:
         return result.fetchall()
 
     async def get_alert_counts(self, station_id: int | None) -> dict[str, int]:
-
         base_params = {}
 
         station_join_clause = ""

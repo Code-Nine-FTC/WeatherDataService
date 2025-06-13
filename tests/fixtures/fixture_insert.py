@@ -2,40 +2,11 @@ from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-from testcontainers.postgres import PostgresContainer
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.models.db_model import Alert, Base, ParameterType, TypeAlert, WeatherStation
+from app.core.models.db_model import Alert, ParameterType, TypeAlert, WeatherStation
 
 
-@pytest.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    with PostgresContainer("postgres:16") as postgres:
-        db_url = postgres.get_connection_url().replace("psycopg2", "asyncpg")
-
-        # Cria a engine assíncrona
-        engine = create_async_engine(db_url)
-
-        # Cria as tabelas usando o metadata do Base
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-        # Cria a sessão assíncrona
-        async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-
-        async with async_session() as session:
-            yield session  # Sessão pronta para uso nos testes
-            await session.rollback()  # Rollback para limpar
-
-        # Limpa as tabelas após os testes (opcional)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-
-
-# =====================================================
-# Fixture: Tipos de Parâmetro (usado em vários testes)
-# =====================================================
 @pytest.fixture
 async def parameter_types_fixture(db_session: AsyncSession):
     param1 = ParameterType(
@@ -64,9 +35,6 @@ async def parameter_types_fixture(db_session: AsyncSession):
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Estação com UID já existente
-# =====================================================
 @pytest.fixture
 async def station_with_existing_uid_fixture(db_session: AsyncSession, parameter_types_fixture):
     station = WeatherStation(
@@ -86,9 +54,6 @@ async def station_with_existing_uid_fixture(db_session: AsyncSession, parameter_
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Estação completa com parâmetros (update, patch etc.)
-# =====================================================
 @pytest.fixture
 async def full_station_fixture(db_session: AsyncSession, parameter_types_fixture):
     station = WeatherStation(
@@ -108,9 +73,6 @@ async def full_station_fixture(db_session: AsyncSession, parameter_types_fixture
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Tipo de parâmetro ativo (usado para listagens, filtros, updates, etc.)
-# =====================================================
 @pytest.fixture
 async def parameter_type_ativo(
     db_session: AsyncSession,
@@ -132,9 +94,6 @@ async def parameter_type_ativo(
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Tipo de alerta (ligado a um tipo de parâmetro)
-# =====================================================
 @pytest.fixture
 async def alert_type_fixture(
     db_session: AsyncSession, parameter_type_ativo: ParameterType
@@ -157,9 +116,6 @@ async def alert_type_fixture(
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Estação usada em alertas
-# =====================================================
 @pytest.fixture
 async def alert_station_fixture(
     db_session: AsyncSession, parameter_types_fixture
@@ -182,9 +138,6 @@ async def alert_station_fixture(
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Alerta completo
-# =====================================================
 @pytest.fixture
 async def alert_fixture(
     db_session: AsyncSession,
