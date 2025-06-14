@@ -55,6 +55,7 @@ jobs:
         run: |
           echo "🔍 Executando lint..."
           ruff check .
+          mypy init 
           mypy .
 
       - name: Run Unit Tests
