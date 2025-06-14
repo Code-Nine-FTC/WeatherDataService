@@ -13,3 +13,5 @@ venv
 mypy.ini
 node_modules
 alembic/versions/*
+.coverage
+coverage.xml
