@@ -16,7 +16,7 @@ from app.modules.common import Singleton
 
 class Database(metaclass=Singleton):
     def __init__(self) -> None:
-        self._engine: AsyncEngine = self._create_engine()  # type: ignore[assignment]
+        self._engine: AsyncEngine = self._create_engine()
         self._session_maker: async_sessionmaker[AsyncSession] = self._create_session_factory()
 
     async def ping(self) -> None:
@@ -25,9 +25,10 @@ class Database(metaclass=Singleton):
 
     @property
     def session(self) -> AsyncSession:
-        return self._session_maker()  # type: ignore[no-any-return,operator, unused-ignore] # noqa
+        return self._session_maker()
 
-    def _create_engine(self) -> async_sessionmaker[AsyncSession]:  # noqa: PLR6301
+    @staticmethod
+    def _create_engine() -> AsyncEngine:
         return create_async_engine(
             settings.DATABASE_URL,
         )

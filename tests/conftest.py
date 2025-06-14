@@ -14,6 +14,7 @@ from app.core.models.db_model import (
 )
 from app.dependency.database import Database
 from app.modules.security import PasswordManager, TokenManager
+from app.schemas.user import UserResponse
 from main import app
 from tests.fixtures.fixture_insert import (
     alerts_fixture,  # noqa: F401
@@ -43,8 +44,9 @@ async def fake_user(db_session: AsyncSession) -> AsyncGenerator[User, None]:
 
 
 @pytest_asyncio.fixture
-async def authenticated_client(fake_user):
-    token = TokenManager().create_access_token(fake_user)
+async def authenticated_client(fake_user: User) -> AsyncGenerator[AsyncClient, None]:
+    user_response = UserResponse.model_validate(fake_user)
+    token = TokenManager().create_access_token(user_response)
     headers = {"Authorization": f"Bearer {token}"}
     transport = ASGITransport(app=app)
     async with AsyncClient(

@@ -99,8 +99,8 @@ async def weather_stations_fixture(
 @pytest_asyncio.fixture
 async def parameters_fixture(
     db_session: AsyncSession,
-    weather_stations_fixture,
-    parameter_types_fixture,
+    weather_stations_fixture: list[WeatherStation],
+    parameter_types_fixture: list[ParameterType],
 ) -> AsyncGenerator[list[Parameter], None]:
     param1 = Parameter(
         parameter_type_id=parameter_types_fixture[0].id,
@@ -123,7 +123,7 @@ async def parameters_fixture(
 @pytest_asyncio.fixture
 async def type_alerts_fixture(
     db_session: AsyncSession,
-    parameters_fixture,
+    parameters_fixture: list[Parameter],
 ) -> AsyncGenerator[list[TypeAlert], None]:
     type_alert_temp = TypeAlert(
         parameter_id=parameters_fixture[0].id,
@@ -152,7 +152,7 @@ async def type_alerts_fixture(
 @pytest_asyncio.fixture
 async def measures_fixture(
     db_session: AsyncSession,
-    parameters_fixture,
+    parameters_fixture: list[Parameter],
 ) -> AsyncGenerator[list[Measures], None]:
     measure1 = Measures(
         parameter_id=parameters_fixture[0].id,
@@ -175,8 +175,8 @@ async def measures_fixture(
 @pytest_asyncio.fixture
 async def alerts_fixture(
     db_session: AsyncSession,
-    type_alerts_fixture,
-    measures_fixture,
+    type_alerts_fixture: list[TypeAlert],
+    measures_fixture: list[Measures],
 ) -> AsyncGenerator[list[Alert], None]:
     alert1 = Alert(
         type_alert_id=type_alerts_fixture[0].id,

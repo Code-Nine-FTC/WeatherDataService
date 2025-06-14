@@ -18,8 +18,15 @@ class AlertResponse(BaseModel):
     create_date: datetime
 
     @field_validator("create_date", mode="before")
-    def parse_create_date(cls, value: int) -> datetime:
-        return ConvertDates.unix_to_datetime(value) if isinstance(value, int) else value
+    def parse_create_date(cls, value: int | datetime) -> datetime:
+        if isinstance(value, int):
+            dt = ConvertDates.unix_to_datetime(value)
+            if dt is None:
+                raise ValueError("Invalid unix timestamp for create_date")
+            return dt
+        if isinstance(value, datetime):
+            return value
+        raise ValueError("Invalid type for create_date")
 
 
 class AlertFilterSchema(BaseModel):

@@ -61,7 +61,7 @@ class DashboardService:
 
     async def get_alert_type_distribution(
         self, station_id: int | None = None
-    ) -> Sequence[Row : [Any]]:
+    ) -> Sequence[Row[Any]]:
         params = {}
         sql_query = """
             SELECT
@@ -131,7 +131,7 @@ class DashboardService:
         counts = {}
         for key, query in queries.items():
             result = await self._session.execute(text(query), base_params)
-            counts[key] = result.scalar()
+            counts[key] = int(result.scalar() or 0)
         return counts
 
     async def get_station_status(self) -> dict[str, int]:
@@ -142,11 +142,11 @@ class DashboardService:
         active_result = await self._session.execute(text(active_query))
 
         return {
-            "total": total_result.scalar() or 0,
-            "active": active_result.scalar() or 0,
+            "total": int(total_result.scalar() or 0),
+            "active": int(active_result.scalar() or 0),
         }
 
-    async def get_measures_status(self) -> list[Row[Any]]:
+    async def get_measures_status(self) -> Sequence[Row[Any]]:
         query = text("""
             SELECT
                 pt.name AS label,

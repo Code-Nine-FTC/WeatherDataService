@@ -1,6 +1,9 @@
+from datetime import datetime
+
 import jwt
 
 from app.modules.security import PasswordManager, TokenManager
+from app.schemas.user import UserResponse
 
 
 def test_password_hash_and_verify() -> None:
@@ -17,17 +20,18 @@ def test_password_hash_fail() -> None:
 
 
 def test_token_creation_with_mock_user() -> None:
-    class MockUser:
-        id = 123
-        name = "Mock"
-        email = "mock@example.com"
-        is_adm = False
-        is_viewer = True
-
-    user = MockUser()
+    user = UserResponse(
+        id=123,
+        name="Mock",
+        email="mock@example.com",
+        password="hashed_password",
+        last_update=datetime.utcnow(),
+    )
     tm = TokenManager()
     token = tm.create_access_token(user)
-    decoded = jwt.decode(
-        token, tm._TokenManager__secret_key, algorithms=[tm._TokenManager__algorithm]
-    )
+    secret = getattr(tm, "secret_key", None) or getattr(tm, "_secret_key", None)
+    algorithm = getattr(tm, "algorithm", None) or getattr(tm, "_algorithm", None)
+    assert secret is not None
+    assert algorithm is not None
+    decoded = jwt.decode(token, secret, algorithms=[algorithm])
     assert decoded["sub"] == str(user.id)
