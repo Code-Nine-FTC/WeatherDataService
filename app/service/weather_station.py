@@ -95,7 +95,7 @@ class WeatherStationService:
         if "address" in station_data:
             current_address = station.address if station.address else {}
             updated_address = station_data.pop("address")
-            current_address.update(updated_address)  # type: ignore[arg-type, attr-defined]
+            current_address.update(updated_address)
             station_data["address"] = current_address
 
         if station_data:

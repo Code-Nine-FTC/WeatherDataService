@@ -38,7 +38,7 @@ class DashboardService:
 
         end_epoch = self._parse_date_to_epoch(end_date)
         if end_epoch is not None:
-            if end_date and len(end_date) == 10:
+            if end_date and len(end_date) == 10:  # noqa PLR2004
                 try:
                     datetime.strptime(end_date, "%Y-%m-%d")
                     end_epoch += (24 * 60 * 60) - 1
@@ -181,7 +181,7 @@ class DashboardService:
         result = await self._session.execute(query, {"station_id": station_id})
         return list(result.fetchall())
 
-    def _parse_date_to_epoch(self, date_str: str | None) -> int | None:
+    def _parse_date_to_epoch(self, date_str: str | None) -> int | None:  # noqa PLR6301
         if date_str is None:
             return None
         try:

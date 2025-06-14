@@ -14,7 +14,7 @@ HOURLY_INTERVAL = 1
 
 
 # --- Realistic Value Generation ---
-def get_seasonal_temperature_base(month_of_year):
+def get_seasonal_temperature_base(month_of_year) -> float:
     """
     Provides a very basic seasonal base temperature.
     Adjust these ranges for your typical climate.
@@ -31,7 +31,7 @@ def get_seasonal_temperature_base(month_of_year):
     return random.uniform(15.0, 25.0)  # Default
 
 
-def generate_realistic_value(parameter_id, current_datetime_utc):
+def generate_realistic_value(parameter_id, current_datetime_utc) -> float:
     """Generates a realistic value based on the parameter_id and current datetime."""
 
     hour_of_day = current_datetime_utc.hour
@@ -84,7 +84,7 @@ def generate_realistic_value(parameter_id, current_datetime_utc):
 
 
 # --- Main Script Logic ---
-def generate_measure_inserts():
+def generate_measure_inserts() -> list[str]:
     now_utc = datetime.datetime.now(datetime.timezone.utc)
 
     # Calculate start_date: X months ago

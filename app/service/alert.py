@@ -47,7 +47,11 @@ class AlertService:
             WHERE 1=1
             AND ta.is_active = true
             AND a.is_read = false
-            {"AND ta.name ILIKE :type_alert_name" if filters and filters.type_alert_name else ""}
+            {
+                "AND ta.name ILIKE :type_alert_name"
+                if filters and filters.type_alert_name
+                else ""
+            }
             {"AND ws.name ILIKE :station_name" if filters and filters.station_name else ""}
             """
         )

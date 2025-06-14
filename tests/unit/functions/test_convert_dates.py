@@ -10,7 +10,7 @@ pytestmark = pytest.mark.unit
 # ---------- Teste convert ----------
 
 
-def test_convert_str_dates_to_datetime():
+def test_convert_str_dates_to_datetime() -> None:
     input_data = {
         "initial_date": "2025-05-21",
         "last_data": "2025-06-01",
@@ -30,7 +30,7 @@ def test_convert_str_dates_to_datetime():
     assert result["other_field"] == "no_change"
 
 
-def test_convert_with_missing_fields():
+def test_convert_with_missing_fields() -> None:
     input_data = {"other_field": "no_change"}
 
     result = ConvertDates.convert(input_data.copy())
@@ -41,7 +41,7 @@ def test_convert_with_missing_fields():
 # ---------- Teste unix_to_datetime ----------
 
 
-def test_unix_to_datetime_valid():
+def test_unix_to_datetime_valid() -> None:
     unixtime = 1716240000
     dt = ConvertDates.unix_to_datetime(unixtime)
 
@@ -49,7 +49,7 @@ def test_unix_to_datetime_valid():
     assert dt == datetime.fromtimestamp(unixtime, tz=timezone.utc)
 
 
-def test_unix_to_datetime_invalid():
+def test_unix_to_datetime_invalid() -> None:
     unixtime = "not_an_int"
     dt = ConvertDates.unix_to_datetime(unixtime)
 

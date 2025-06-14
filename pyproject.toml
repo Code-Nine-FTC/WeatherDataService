@@ -38,12 +38,14 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff.lint]
+exclude = ["alembic", "importacao.py"]
 preview = true
 select = ["E", "F", "W", "I", "PL", "PT", "R"]
 fixable = ["ALL"]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.format]
+exclude = ["alembic", "importacao.py"]
 preview = true
 quote-style = "double"
 indent-style = "space"
@@ -51,16 +53,17 @@ indent-style = "space"
 [tool.taskipy.tasks]
 run = 'fastapi dev main.py'
 pre_test = 'task lint'
-test = 'pytest --cov=app -vv'
+test = 'pytest --cov -vv'
 post_test = 'coverage html'
 lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff  format .'
 
 [tool.mypy]
+exclude = ["alembic", "importacao.py"]
 ignore_missing_imports = true
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
 disallow_any_unimported = true
-exclude = "(?x)(^\\.alembic/.*$)"
+

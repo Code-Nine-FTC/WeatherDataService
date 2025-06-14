@@ -30,9 +30,6 @@ class Database(metaclass=Singleton):
     def _create_engine(self) -> async_sessionmaker[AsyncSession]:  # noqa: PLR6301
         return create_async_engine(
             settings.DATABASE_URL,
-            max_overflow=50,
-            pool_timeout=30,
-            pool_recycle=1800,
         )
 
     def _create_session_factory(self) -> async_sessionmaker[AsyncSession]:

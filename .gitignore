@@ -5,12 +5,11 @@
 __pycache__
 *.pyc
 venv
-alembic
 .ruff_cache
 .pytype
 .pytest_cache
-alembic.ini
 .mypy_cache
 .env
 mypy.ini
 node_modules
+alembic/versions/*

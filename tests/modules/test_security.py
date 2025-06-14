@@ -3,20 +3,20 @@ import jwt
 from app.modules.security import PasswordManager, TokenManager
 
 
-def test_password_hash_and_verify():
+def test_password_hash_and_verify() -> None:
     manager = PasswordManager()
     password = "secure"
     hashed = manager.password_hash(password)
     assert manager.verify_password(password, hashed)
 
 
-def test_password_hash_fail():
+def test_password_hash_fail() -> None:
     manager = PasswordManager()
     hashed = manager.password_hash("password")
     assert not manager.verify_password("wrong", hashed)
 
 
-def test_token_creation_with_mock_user():
+def test_token_creation_with_mock_user() -> None:
     class MockUser:
         id = 123
         name = "Mock"
