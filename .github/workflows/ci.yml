@@ -55,7 +55,9 @@ jobs:
         run: |
           echo "🔍 Executando lint..."
           ruff check .
-          mypy init 
+      - name: Run Type Checking
+        run: |
+          echo "🔍 Executando verificação de tipos..."
           mypy .
 
       - name: Run Unit Tests
