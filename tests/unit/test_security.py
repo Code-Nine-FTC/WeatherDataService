@@ -1,9 +1,6 @@
-from datetime import datetime
 
-import jwt
 
-from app.modules.security import PasswordManager, TokenManager
-from app.schemas.user import UserResponse
+from app.modules.security import PasswordManager
 
 
 def test_password_hash_and_verify() -> None:
