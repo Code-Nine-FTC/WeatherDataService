@@ -37,6 +37,7 @@ jobs:
       - name: Run Integration Tests
         run: |
           echo "Iniciando o container de testes..."
+          git submodule update --init --recursive
           docker compose up
           
           echo "🔗 Executando testes..."
