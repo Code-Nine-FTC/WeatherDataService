@@ -3,6 +3,9 @@
 
 from typing import AsyncGenerator
 
+from tests.fixtures.fixture_function import (  # noqa: F401
+    delete_all_stations,  # noqa: F401
+)
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

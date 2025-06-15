@@ -203,7 +203,10 @@ class WeatherStationService:
         query = select(WeatherStation).where(WeatherStation.uid == uid)
         result = await self._session.execute(query)
         station = result.scalar()
-        return WeatherStationResponseList(**station.__dict__) if station else None
+        weatherstation = station.__dict__ if station else None
+        if weatherstation: 
+            weatherstation.pop("_sa_instance_state", None)
+        return WeatherStationResponseList(**weatherstation) if weatherstation else None
 
     async def get_station_by_parameter(self, parmater_type_id: int) -> list[PameterByStation]:
         query = text(

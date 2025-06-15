@@ -87,7 +87,7 @@ class WeatherStationResponse(BaseModel):
 
 class WeatherStationResponseList(BaseModel):
     id: int
-    name_station: str
+    name: str
     uid: str
     address: StationAddress | None = None
     latitude: float
