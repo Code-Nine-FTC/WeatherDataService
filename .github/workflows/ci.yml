@@ -74,4 +74,5 @@ jobs:
       - name: Run Unit Tests
         run: |
           echo "🧪 Executando testes unitários..."
+          git submodule update --init --recursive
           pytest tests/unit
