@@ -166,7 +166,7 @@ class WeatherStationService:
             """
             SELECT
                 ws.id,
-                ws."name" AS name_station,
+                ws."name",
                 ws.uid,
                 ws.address,
                 ws.latitude,
@@ -213,7 +213,7 @@ class WeatherStationService:
             """
             select
                 p.id,
-                ws.name as name_station
+                ws.name
             from weather_stations ws
             join parameters p
                 on ws.id = p.station_id
