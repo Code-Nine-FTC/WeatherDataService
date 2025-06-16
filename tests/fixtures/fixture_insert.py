@@ -1,43 +1,25 @@
+# -- coding: utf-8 --
+
 from datetime import datetime, timezone
 from typing import AsyncGenerator
 
-import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-from testcontainers.postgres import PostgresContainer
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.models.db_model import Alert, Base, ParameterType, TypeAlert, WeatherStation
-
-
-@pytest.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    with PostgresContainer("postgres:16") as postgres:
-        db_url = postgres.get_connection_url().replace("psycopg2", "asyncpg")
-
-        # Cria a engine assíncrona
-        engine = create_async_engine(db_url)
-
-        # Cria as tabelas usando o metadata do Base
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-        # Cria a sessão assíncrona
-        async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-
-        async with async_session() as session:
-            yield session  # Sessão pronta para uso nos testes
-            await session.rollback()  # Rollback para limpar
-
-        # Limpa as tabelas após os testes (opcional)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
+from app.core.models.db_model import (
+    Alert,
+    Measures,
+    Parameter,
+    ParameterType,
+    TypeAlert,
+    WeatherStation,
+)
 
 
-# =====================================================
-# Fixture: Tipos de Parâmetro (usado em vários testes)
-# =====================================================
-@pytest.fixture
-async def parameter_types_fixture(db_session: AsyncSession):
+@pytest_asyncio.fixture
+async def parameter_types_fixture(
+    db_session: AsyncSession,
+) -> AsyncGenerator[list[ParameterType], None]:
     param1 = ParameterType(
         name="Temperatura",
         detect_type="climate",
@@ -56,6 +38,80 @@ async def parameter_types_fixture(db_session: AsyncSession):
         factor=1.0,
         is_active=True,
     )
+    param3 = ParameterType(
+        name="Pressão",
+        detect_type="climate",
+        measure_unit="hPa",
+        qnt_decimals=0,
+        offset=0.0,
+        factor=1.0,
+        is_active=False,
+    )
+    db_session.add_all([param1, param2, param3])
+    await db_session.commit()
+    yield [param1, param2]
+    await db_session.delete(param1)
+    await db_session.delete(param2)
+    await db_session.delete(param3)
+    await db_session.commit()
+
+
+@pytest_asyncio.fixture
+async def weather_stations_fixture(
+    db_session: AsyncSession,
+) -> AsyncGenerator[list[WeatherStation], None]:
+    station1 = WeatherStation(
+        name="Estação 1",
+        uid="station-001",
+        address=[{"city": "Cidade X", "state": "Estado X", "country": "Brasil"}],
+        latitude=-23.5505,
+        longitude=-46.6333,
+        altitude=760,
+        is_active=True,
+    )
+    station2 = WeatherStation(
+        name="Estação 2",
+        uid="station-002",
+        address=[{"city": "Cidade Y", "state": "Estado Y", "country": "Brasil"}],
+        latitude=-22.9068,
+        longitude=-43.1729,
+        altitude=10,
+        is_active=True,
+    )
+    station3 = WeatherStation(
+        name="Estação 3",
+        uid="station-003",
+        address=[{"city": "Cidade Z", "state": "Estado Z", "country": "Brasil"}],
+        latitude=-20.3155,
+        longitude=-40.3128,
+        altitude=34,
+        is_active=False,
+    )
+    db_session.add_all([station1, station2, station3])
+    await db_session.commit()
+    yield [station1, station2, station3]
+    await db_session.delete(station1)
+    await db_session.delete(station2)
+    await db_session.delete(station3)
+    await db_session.commit()
+
+
+@pytest_asyncio.fixture
+async def parameters_fixture(
+    db_session: AsyncSession,
+    weather_stations_fixture: list[WeatherStation],
+    parameter_types_fixture: list[ParameterType],
+) -> AsyncGenerator[list[Parameter], None]:
+    param1 = Parameter(
+        parameter_type_id=parameter_types_fixture[0].id,
+        station_id=weather_stations_fixture[0].id,
+        is_active=True,
+    )
+    param2 = Parameter(
+        parameter_type_id=parameter_types_fixture[1].id,
+        station_id=weather_stations_fixture[1].id,
+        is_active=True,
+    )
     db_session.add_all([param1, param2])
     await db_session.commit()
     yield [param1, param2]
@@ -64,142 +120,79 @@ async def parameter_types_fixture(db_session: AsyncSession):
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Estação com UID já existente
-# =====================================================
-@pytest.fixture
-async def station_with_existing_uid_fixture(db_session: AsyncSession, parameter_types_fixture):
-    station = WeatherStation(
-        name="Estação Existente",
-        uid="uid-existente",
-        latitude=-10.0,
-        longitude=-50.0,
-        address={"city": "Cuiabá", "state": "MT", "country": "Brasil"},
-        create_date=int(datetime.now(timezone.utc).timestamp()),
-        is_active=True,
-    )
-    station.parameter_types = parameter_types_fixture
-    db_session.add(station)
-    await db_session.commit()
-    yield {"station": station, "parameter_types": parameter_types_fixture}
-    await db_session.delete(station)
-    await db_session.commit()
-
-
-# =====================================================
-# Fixture: Estação completa com parâmetros (update, patch etc.)
-# =====================================================
-@pytest.fixture
-async def full_station_fixture(db_session: AsyncSession, parameter_types_fixture):
-    station = WeatherStation(
-        name="Estação Completa",
-        uid="uid-completo",
-        latitude=-15.0,
-        longitude=-45.0,
-        address={"city": "Brasília", "state": "DF", "country": "Brasil"},
-        create_date=int(datetime.now(timezone.utc).timestamp()),
-        is_active=True,
-    )
-    station.parameter_types = parameter_types_fixture
-    db_session.add(station)
-    await db_session.commit()
-    yield {"station": station, "parameter_types": parameter_types_fixture}
-    await db_session.delete(station)
-    await db_session.commit()
-
-
-# =====================================================
-# Fixture: Tipo de parâmetro ativo (usado para listagens, filtros, updates, etc.)
-# =====================================================
-@pytest.fixture
-async def parameter_type_ativo(
+@pytest_asyncio.fixture
+async def type_alerts_fixture(
     db_session: AsyncSession,
-) -> AsyncGenerator[ParameterType, None]:
-    param = ParameterType(
-        name="Temperatura",
-        detect_type="climate",
-        measure_unit="°C",
-        qnt_decimals=2,
-        offset=0.0,
-        factor=1.0,
-        is_active=True,
-    )
-    db_session.add(param)
-    await db_session.commit()
-    await db_session.refresh(param)
-    yield param
-    await db_session.delete(param)
-    await db_session.commit()
-
-
-# =====================================================
-# Fixture: Tipo de alerta (ligado a um tipo de parâmetro)
-# =====================================================
-@pytest.fixture
-async def alert_type_fixture(
-    db_session: AsyncSession, parameter_type_ativo: ParameterType
-) -> AsyncGenerator[TypeAlert, None]:
-    alert_type = TypeAlert(
-        parameter_id=parameter_type_ativo.id,
-        name="Alerta Ativo",
+    parameters_fixture: list[Parameter],
+) -> AsyncGenerator[list[TypeAlert], None]:
+    type_alert_temp = TypeAlert(
+        parameter_id=parameters_fixture[0].id,
+        name="Alerta de Temperatura",
         value=30,
         math_signal=">",
-        status="active",
         is_active=True,
-        create_date=datetime.now(timezone.utc),
-        last_update=datetime.now(timezone.utc),
+        status="A",
     )
-    db_session.add(alert_type)
-    await db_session.commit()
-    await db_session.refresh(alert_type)
-    yield alert_type
-    await db_session.delete(alert_type)
-    await db_session.commit()
-
-
-# =====================================================
-# Fixture: Estação usada em alertas
-# =====================================================
-@pytest.fixture
-async def alert_station_fixture(
-    db_session: AsyncSession, parameter_types_fixture
-) -> AsyncGenerator[WeatherStation, None]:
-    station = WeatherStation(
-        name="Estação 1",
-        uid="alert-uid",
-        latitude=-20.0,
-        longitude=-40.0,
-        address={"city": "Vitória", "state": "ES", "country": "Brasil"},
-        create_date=int(datetime.now(timezone.utc).timestamp()),
+    type_alert_hum = TypeAlert(
+        parameter_id=parameters_fixture[1].id,
+        name="Alerta de Umidade",
+        value=70,
+        math_signal="<",
         is_active=True,
+        status="A",
     )
-    station.parameter_types = parameter_types_fixture
-    db_session.add(station)
+    db_session.add_all([type_alert_temp, type_alert_hum])
     await db_session.commit()
-    await db_session.refresh(station)
-    yield station
-    await db_session.delete(station)
+    yield [type_alert_temp, type_alert_hum]
+    await db_session.delete(type_alert_temp)
+    await db_session.delete(type_alert_hum)
     await db_session.commit()
 
 
-# =====================================================
-# Fixture: Alerta completo
-# =====================================================
-@pytest.fixture
-async def alert_fixture(
+@pytest_asyncio.fixture
+async def measures_fixture(
     db_session: AsyncSession,
-    alert_station_fixture: WeatherStation,
-    alert_type_fixture: TypeAlert,
-) -> AsyncGenerator[Alert, None]:
-    alert = Alert(
-        station_id=alert_station_fixture.id,
-        type_alert_id=alert_type_fixture.id,
-        measure_value="35",
-        create_date=datetime.now(timezone.utc),
+    parameters_fixture: list[Parameter],
+) -> AsyncGenerator[list[Measures], None]:
+    measure1 = Measures(
+        parameter_id=parameters_fixture[0].id,
+        value=25.5,
+        measure_date=int(datetime.now(timezone.utc).timestamp()),
     )
-    db_session.add(alert)
+    measure2 = Measures(
+        parameter_id=parameters_fixture[1].id,
+        value=60.0,
+        measure_date=int(datetime.now(timezone.utc).timestamp()),
+    )
+    db_session.add_all([measure1, measure2])
     await db_session.commit()
-    await db_session.refresh(alert)
-    yield alert
-    await db_session.delete(alert)
+    yield [measure1, measure2]
+    await db_session.delete(measure1)
+    await db_session.delete(measure2)
+    await db_session.commit()
+
+
+@pytest_asyncio.fixture
+async def alerts_fixture(
+    db_session: AsyncSession,
+    type_alerts_fixture: list[TypeAlert],
+    measures_fixture: list[Measures],
+) -> AsyncGenerator[list[Alert], None]:
+    alert1 = Alert(
+        type_alert_id=type_alerts_fixture[0].id,
+        measure_id=measures_fixture[0].id,
+        create_date=int(datetime.now(timezone.utc).timestamp()),
+        is_read=False,
+    )
+    alert2 = Alert(
+        type_alert_id=type_alerts_fixture[1].id,
+        measure_id=measures_fixture[1].id,
+        create_date=int(datetime.now(timezone.utc).timestamp()),
+        is_read=False,
+    )
+    db_session.add_all([alert1, alert2])
+    await db_session.commit()
+    yield [alert1, alert2]
+    await db_session.delete(alert1)
+    await db_session.delete(alert2)
     await db_session.commit()

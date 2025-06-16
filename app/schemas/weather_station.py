@@ -53,7 +53,7 @@ class WeatherStationUpdate(BaseModel):
     address: StationAdressUpdate | None = None
     latitude: float | None = None
     longitude: float | None = None
-    last_update: datetime | None = datetime.now()
+    last_update: datetime | None = None
     is_active: bool | None = None
     parameter_types: list[int] | None = None
 
@@ -77,12 +77,17 @@ class WeatherStationResponse(BaseModel):
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value: int) -> datetime:
-        return ConvertDates.unix_to_datetime(value)
+        if value is None:
+            raise ValueError("create_date cannot be None")
+        dt = ConvertDates.unix_to_datetime(value)
+        if dt is None:
+            raise ValueError("Invalid unix timestamp for create_date")
+        return dt
 
 
 class WeatherStationResponseList(BaseModel):
     id: int
-    name_station: str
+    name: str
     uid: str
     address: StationAddress | None = None
     latitude: float

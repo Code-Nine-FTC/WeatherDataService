@@ -24,8 +24,9 @@ async def get_station_history(
     endDate: str | None = Query(default=None, description="Data de fim da filtragem"),
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[list[StationHistoryItem]]:
-    return await DashboardController(session
-        ).get_station_history(station_id, startDate, endDate)
+    return await DashboardController(session).get_station_history(
+        station_id, startDate, endDate
+    )
 
 
 @router.get("/alert-types", response_model=BasicResponse[list[AlertTypeDistributionItem]])
@@ -58,8 +59,9 @@ async def get_measures_status(
     return await DashboardController(session).get_measures_status()
 
 
-@router.get("/last-measures/{station_id}", 
-    response_model=BasicResponse[list[StationHistoryItem]])
+@router.get(
+    "/last-measures/{station_id}", response_model=BasicResponse[list[StationHistoryItem]]
+)
 async def get_last_measures(
     station_id: int,
     session: AsyncSession = Depends(SessionConnection.session),

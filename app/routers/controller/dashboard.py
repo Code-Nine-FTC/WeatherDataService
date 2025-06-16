@@ -43,8 +43,9 @@ class DashboardController:
                 detail=f"Erro ao buscar distribuição de alertas: {str(e)}",
             )
 
-    async def get_alert_counts(self, station_id: int | None = None
-        ) -> BasicResponse[AlertCounts]:
+    async def get_alert_counts(
+        self, station_id: int | None = None
+    ) -> BasicResponse[AlertCounts]:
         try:
             data = await self._service.get_alert_counts(station_id)
             return BasicResponse(data=AlertCounts(**data))
