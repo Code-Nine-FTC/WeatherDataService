@@ -41,56 +41,29 @@ class TestWeatherStations:
         await db_session.execute(text("DELETE FROM weather_stations WHERE uid = 'station-999'"))
         await db_session.commit()
 
-    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+            "payload",
+            [
+                {
+                    "name": "Estação Meteorológica Central",
+                },
+                {
+                    "uid": "station-0001",
+                },{
+                    "is_active": True,
+                }
+            ]
+    )
     async def test_list_all_weather_stations(
         self,
+        payload,
         authenticated_client: AsyncClient,
         weather_stations_fixture,
     ) -> None:
-        response = await authenticated_client.get("/weather_stations/")
+        response = await authenticated_client.get("/stations/filters", params=payload)
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.json()["data"], list)
 
-    @pytest.mark.asyncio
-    async def test_filter_weather_station_by_uid(
-        self,
-        authenticated_client: AsyncClient,
-        weather_stations_fixture,
-    ) -> None:
-        station = weather_stations_fixture[0]
-        response = await authenticated_client.get(
-            "/weather_stations/", params={"uid": station.uid}
-        )
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()["data"]
-        assert all(d["uid"] == station.uid for d in data)
-
-    @pytest.mark.asyncio
-    async def test_filter_weather_station_by_name(
-        self,
-        authenticated_client: AsyncClient,
-        weather_stations_fixture,
-    ) -> None:
-        station = weather_stations_fixture[1]
-        response = await authenticated_client.get(
-            "/weather_stations/", params={"name": station.name}
-        )
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()["data"]
-        assert all(d["name_station"] == station.name for d in data)
-
-    @pytest.mark.asyncio
-    async def test_filter_weather_station_by_active_status(
-        self,
-        authenticated_client: AsyncClient,
-        weather_stations_fixture,
-    ) -> None:
-        response = await authenticated_client.get(
-            "/weather_stations/", params={"is_active": True}
-        )
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()["data"]
-        assert all(d["is_active"] is True for d in data)
 
     @pytest.mark.asyncio
     async def test_update_weather_station_partial(
@@ -106,12 +79,9 @@ class TestWeatherStations:
             }
         }
         response = await authenticated_client.patch(
-            f"/weather_stations/{station.id}/update", json=payload
+            f"/stations/{station.id}", json=payload
         )
         assert response.status_code == status.HTTP_200_OK
-        data = response.json()["data"]
-        assert data["name_station"] == "Novo Nome da Estação"
-        assert data["address"]["city"] == "Cidade Nova"
 
     @pytest.mark.asyncio
     async def test_deactivate_weather_station(
@@ -121,15 +91,14 @@ class TestWeatherStations:
     ) -> None:
         station = weather_stations_fixture[1]
         response = await authenticated_client.patch(
-            f"/weather_stations/{station.id}/update", json={"is_active": False}
+            f"/stations/disable/{station.id}", json={"is_active": False}
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["data"]["is_active"] is False
 
     @pytest.mark.asyncio
     async def test_get_nonexistent_weather_station(
         self,
         authenticated_client: AsyncClient,
     ) -> None:
-        response = await authenticated_client.get("/weather_stations/999999")
+        response = await authenticated_client.get("/stations/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND

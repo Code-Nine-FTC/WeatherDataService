@@ -14,6 +14,7 @@ from app.core.models.db_model import (
     TypeAlert,
     WeatherStation,
 )
+from sqlalchemy import select
 
 
 @pytest_asyncio.fixture
@@ -60,40 +61,54 @@ async def parameter_types_fixture(
 async def weather_stations_fixture(
     db_session: AsyncSession,
 ) -> AsyncGenerator[list[WeatherStation], None]:
-    station1 = WeatherStation(
-        name="Estação 1",
-        uid="station-001",
-        address=[{"city": "Cidade X", "state": "Estado X", "country": "Brasil"}],
-        latitude=-23.5505,
-        longitude=-46.6333,
-        altitude=760,
-        is_active=True,
-    )
-    station2 = WeatherStation(
-        name="Estação 2",
-        uid="station-002",
-        address=[{"city": "Cidade Y", "state": "Estado Y", "country": "Brasil"}],
-        latitude=-22.9068,
-        longitude=-43.1729,
-        altitude=10,
-        is_active=True,
-    )
-    station3 = WeatherStation(
-        name="Estação 3",
-        uid="station-003",
-        address=[{"city": "Cidade Z", "state": "Estado Z", "country": "Brasil"}],
-        latitude=-20.3155,
-        longitude=-40.3128,
-        altitude=34,
-        is_active=False,
-    )
-    db_session.add_all([station1, station2, station3])
-    await db_session.commit()
-    yield [station1, station2, station3]
-    await db_session.delete(station1)
-    await db_session.delete(station2)
-    await db_session.delete(station3)
-    await db_session.commit()
+    stations = []
+    new_stations=  [
+        {
+            "name": "Estação Meteorológica Central",
+            "uid": "station-0001",
+            "address": {"city": "São Paulo", "state": "SP", "country": "Brasil"},
+            "latitude": -23.5505,
+            "longitude": -46.6333,
+            "is_active": True,
+        },
+        {
+            "name": "Estação Meteorológica Norte",
+            "uid": "station-0002",
+            "address": {"city": "Rio de Janeiro", "state": "RJ", "country": "Brasil"},
+            "latitude": -22.9068,
+            "longitude": -43.1729,
+            "is_active": True,
+        },
+        {
+            "name": "Estação Meteorológica Sul",
+            "uid": "station-0003",
+            "address": {"city": "Belo Horizonte", "state": "MG", "country": "Brasil"},
+            "latitude": -19.9167,
+            "longitude": -43.9345,
+            "is_active": False,
+        },
+    ]
+    
+    for station_data in new_stations:
+        station = await db_session.execute(
+            select(WeatherStation).where(
+                WeatherStation.uid == station_data["uid"]
+            )
+        )
+        station = station.scalar_one_or_none()
+        if station :
+            stations.append(station)
+        else:
+            station_data = WeatherStation(**station_data)
+            db_session.add(station_data)
+            await db_session.flush()
+            await db_session.commit()
+            stations.append(station_data)
+
+    yield stations
+    for station in stations:
+        await db_session.delete(station)
+        await db_session.commit()
 
 
 @pytest_asyncio.fixture
