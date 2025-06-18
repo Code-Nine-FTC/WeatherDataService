@@ -36,16 +36,9 @@ class TestWeatherStations:
         assert response.status_code == status.HTTP_200_OK
         await db_session.execute(
             text("""
-        await db_session.execute(
-            text("""
     DELETE FROM parameters WHERE station_id IN (
         SELECT id FROM weather_stations WHERE uid = 'station-999'
     )
-""")
-        )
-        await db_session.execute(
-            text("DELETE FROM weather_stations WHERE uid = 'station-999'")
-        )
 """)
         )
         await db_session.execute(
