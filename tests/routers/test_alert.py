@@ -11,7 +11,7 @@ class TestAlerts:
         authenticated_client: AsyncClient,
         alerts_fixture,
         type_alerts_fixture,
-        measures_fixture
+        measures_fixture,
     ) -> None:
         response = await authenticated_client.get("/alert/all")
         assert response.status_code == status.HTTP_200_OK
@@ -27,8 +27,7 @@ class TestAlerts:
     @pytest.mark.asyncio
     @staticmethod
     async def test_filter_by_type_alert_name(
-        authenticated_client: AsyncClient,
-        alerts_fixture
+        authenticated_client: AsyncClient, alerts_fixture
     ) -> None:
         response = await authenticated_client.get("/alert/all?type_alert_name=Temperatura")
         assert response.status_code == status.HTTP_200_OK
@@ -39,8 +38,7 @@ class TestAlerts:
     @pytest.mark.asyncio
     @staticmethod
     async def test_filter_by_station_name(
-        authenticated_client: AsyncClient,
-        alerts_fixture
+        authenticated_client: AsyncClient, alerts_fixture
     ) -> None:
         response = await authenticated_client.get("/alert/all?station_name=Estação 1")
         assert response.status_code == status.HTTP_200_OK

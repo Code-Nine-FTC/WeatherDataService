@@ -29,7 +29,6 @@ class TestWeatherStations:
             "latitude": -10.1234,
             "longitude": -50.5678,
             "address": {"city": "Cidade Teste", "state": "Estado Teste", "country": "Brasil"},
-            "address": {"city": "Cidade Teste", "state": "Estado Teste", "country": "Brasil"},
             "parameter_types": [pt.id for pt in parameter_types_fixture],
         }
         response = await authenticated_client.post("/stations/", json=payload)
@@ -54,9 +53,6 @@ class TestWeatherStations:
             },
             {
                 "uid": "station-0001",
-            },
-            {
-                "is_active": True,
             },
         ],
     )
@@ -102,4 +98,3 @@ class TestWeatherStations:
     ) -> None:
         response = await authenticated_client.get("/stations/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
-

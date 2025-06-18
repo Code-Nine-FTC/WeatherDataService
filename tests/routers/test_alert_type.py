@@ -6,8 +6,8 @@ from sqlalchemy import text
 
 class TestAlertType:
     @pytest.mark.asyncio
+    @staticmethod
     async def test_create_alert_type(
-        self,
         authenticated_client: AsyncClient,
         parameters_fixture,
         db_session,
@@ -31,8 +31,8 @@ class TestAlertType:
         await db_session.commit()
 
     @pytest.mark.asyncio
+    @staticmethod
     async def test_create_alert_type_with_invalid_parameter(
-        self,
         authenticated_client: AsyncClient,
         db_session,
     ) -> None:
@@ -47,8 +47,8 @@ class TestAlertType:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.asyncio
+    @staticmethod
     async def test_list_alert_types(
-        self,
         authenticated_client: AsyncClient,
         type_alerts_fixture,
     ) -> None:
@@ -56,8 +56,8 @@ class TestAlertType:
         assert response.status_code == status.HTTP_200_OK
 
     @pytest.mark.asyncio
+    @staticmethod
     async def test_get_alert_type(
-        self,
         authenticated_client: AsyncClient,
         type_alerts_fixture,
     ) -> None:
@@ -66,8 +66,8 @@ class TestAlertType:
         assert response.status_code == status.HTTP_200_OK
 
     @pytest.mark.asyncio
+    @staticmethod
     async def test_update_alert_type(
-        self,
         authenticated_client: AsyncClient,
         type_alerts_fixture,
         db_session,
@@ -87,8 +87,8 @@ class TestAlertType:
         assert get_response.status_code == status.HTTP_200_OK
 
     @pytest.mark.asyncio
+    @staticmethod
     async def test_delete_alert_type(
-        self,
         authenticated_client: AsyncClient,
         type_alerts_fixture,
         db_session,
