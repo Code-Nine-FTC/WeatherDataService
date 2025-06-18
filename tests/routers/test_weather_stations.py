@@ -29,15 +29,23 @@ class TestWeatherStations:
             "latitude": -10.1234,
             "longitude": -50.5678,
             "address": {"city": "Cidade Teste", "state": "Estado Teste", "country": "Brasil"},
+            "address": {"city": "Cidade Teste", "state": "Estado Teste", "country": "Brasil"},
             "parameter_types": [pt.id for pt in parameter_types_fixture],
         }
         response = await authenticated_client.post("/stations/", json=payload)
         assert response.status_code == status.HTTP_200_OK
         await db_session.execute(
             text("""
+        await db_session.execute(
+            text("""
     DELETE FROM parameters WHERE station_id IN (
         SELECT id FROM weather_stations WHERE uid = 'station-999'
     )
+""")
+        )
+        await db_session.execute(
+            text("DELETE FROM weather_stations WHERE uid = 'station-999'")
+        )
 """)
         )
         await db_session.execute(
@@ -78,6 +86,8 @@ class TestWeatherStations:
         station = weather_stations_fixture[0]
         payload = {"name": "Novo Nome da Estação", "address": {"city": "Cidade Nova"}}
         response = await authenticated_client.patch(f"/stations/{station.id}", json=payload)
+        payload = {"name": "Novo Nome da Estação", "address": {"city": "Cidade Nova"}}
+        response = await authenticated_client.patch(f"/stations/{station.id}", json=payload)
         assert response.status_code == status.HTTP_200_OK
 
     @pytest.mark.asyncio
@@ -99,3 +109,4 @@ class TestWeatherStations:
     ) -> None:
         response = await authenticated_client.get("/stations/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
