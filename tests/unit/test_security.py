@@ -1,5 +1,3 @@
-
-
 from app.modules.security import PasswordManager
 
 

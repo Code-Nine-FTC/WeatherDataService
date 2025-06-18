@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 import pytest_asyncio
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import (
@@ -14,7 +15,6 @@ from app.core.models.db_model import (
     TypeAlert,
     WeatherStation,
 )
-from sqlalchemy import select
 
 
 @pytest_asyncio.fixture
@@ -62,7 +62,7 @@ async def weather_stations_fixture(
     db_session: AsyncSession,
 ) -> AsyncGenerator[list[WeatherStation], None]:
     stations = []
-    new_stations=  [
+    new_stations = [
         {
             "name": "Estação Meteorológica Central",
             "uid": "station-0001",
@@ -88,15 +88,13 @@ async def weather_stations_fixture(
             "is_active": False,
         },
     ]
-    
+
     for station_data in new_stations:
         station = await db_session.execute(
-            select(WeatherStation).where(
-                WeatherStation.uid == station_data["uid"]
-            )
+            select(WeatherStation).where(WeatherStation.uid == station_data["uid"])
         )
         station = station.scalar_one_or_none()
-        if station :
+        if station:
             stations.append(station)
         else:
             station_data = WeatherStation(**station_data)
@@ -117,22 +115,39 @@ async def parameters_fixture(
     weather_stations_fixture: list[WeatherStation],
     parameter_types_fixture: list[ParameterType],
 ) -> AsyncGenerator[list[Parameter], None]:
-    param1 = Parameter(
-        parameter_type_id=parameter_types_fixture[0].id,
-        station_id=weather_stations_fixture[0].id,
-        is_active=True,
-    )
-    param2 = Parameter(
-        parameter_type_id=parameter_types_fixture[1].id,
-        station_id=weather_stations_fixture[1].id,
-        is_active=True,
-    )
-    db_session.add_all([param1, param2])
-    await db_session.commit()
-    yield [param1, param2]
-    await db_session.delete(param1)
-    await db_session.delete(param2)
-    await db_session.commit()
+    list_parameters = []
+    parameters = [
+        {
+            "parameter_type_id": parameter_types_fixture[0].id,
+            "station_id": weather_stations_fixture[0].id,
+            "is_active": True,
+        },
+        {
+            "parameter_type_id": parameter_types_fixture[1].id,
+            "station_id": weather_stations_fixture[1].id,
+            "is_active": True,
+        },
+    ]
+    for param_data in parameters:
+        param = await db_session.execute(
+            select(Parameter).where(
+                Parameter.parameter_type_id == param_data["parameter_type_id"],
+                Parameter.station_id == param_data["station_id"],
+            )
+        )
+        param = param.scalar_one_or_none()
+        if not param:
+            param = Parameter(**param_data)
+            db_session.add(param)
+            await db_session.flush()
+            await db_session.commit()
+            list_parameters.append(param)
+        else:
+            list_parameters.append(param)
+    yield list_parameters
+    for param in list_parameters:
+        await db_session.delete(param)
+        await db_session.commit()
 
 
 @pytest_asyncio.fixture
@@ -140,28 +155,45 @@ async def type_alerts_fixture(
     db_session: AsyncSession,
     parameters_fixture: list[Parameter],
 ) -> AsyncGenerator[list[TypeAlert], None]:
-    type_alert_temp = TypeAlert(
-        parameter_id=parameters_fixture[0].id,
-        name="Alerta de Temperatura",
-        value=30,
-        math_signal=">",
-        is_active=True,
-        status="A",
-    )
-    type_alert_hum = TypeAlert(
-        parameter_id=parameters_fixture[1].id,
-        name="Alerta de Umidade",
-        value=70,
-        math_signal="<",
-        is_active=True,
-        status="A",
-    )
-    db_session.add_all([type_alert_temp, type_alert_hum])
-    await db_session.commit()
-    yield [type_alert_temp, type_alert_hum]
-    await db_session.delete(type_alert_temp)
-    await db_session.delete(type_alert_hum)
-    await db_session.commit()
+    new_type_alerts = [
+        {
+            "parameter_id": parameters_fixture[0].id,
+            "name": "Alerta de Temperatura",
+            "value": 30,
+            "math_signal": ">",
+            "is_active": True,
+            "status": "A",
+        },
+        {
+            "parameter_id": parameters_fixture[1].id,
+            "name": "Alerta de Umidade",
+            "value": 70,
+            "math_signal": "<",
+            "is_active": True,
+            "status": "A",
+        },
+    ]
+    type_alerts = []
+    for alert_data in new_type_alerts:
+        type_alert = await db_session.execute(
+            select(TypeAlert).where(
+                TypeAlert.parameter_id == alert_data["parameter_id"],
+                TypeAlert.name == alert_data["name"],
+            )
+        )
+        type_alert = type_alert.scalar_one_or_none()
+        if not type_alert:
+            type_alert = TypeAlert(**alert_data)
+            db_session.add(type_alert)
+            await db_session.flush()
+            await db_session.commit()
+            type_alerts.append(type_alert)
+        else:
+            type_alerts.append(type_alert)
+    yield type_alerts
+    for type_alert in type_alerts:
+        await db_session.delete(type_alert)
+        await db_session.commit()
 
 
 @pytest_asyncio.fixture
