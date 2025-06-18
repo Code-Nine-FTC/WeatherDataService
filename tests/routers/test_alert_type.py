@@ -178,7 +178,7 @@ class TestAlertType:
             "status": type_alerts_fixture[0].status,
         }
         response = await authenticated_client.post("/alert_type/", json=payload)
-        assert response.status_code in [ # noqa PLR6201
+        assert response.status_code in [  # noqa PLR6201
             status.HTTP_409_CONFLICT,
             status.HTTP_400_BAD_REQUEST,
             status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -218,7 +218,7 @@ class TestAlertType:
         assert get_response.status_code == status.HTTP_200_OK
         data = get_response.json()["data"]
         assert data["name"] == "Updated Multiple Fields"
-        assert data["value"] == 42 # noqa PLR2004
+        assert data["value"] == 42  # noqa PLR2004
         assert data["math_signal"] == ">="
         assert data["status"] == "I"
 
@@ -230,7 +230,7 @@ class TestAlertType:
     ) -> None:
         """Test updating only some fields of an alert type"""
         alert_type_id = type_alerts_fixture[0].id
-        original_name = type_alerts_fixture[0].name # noqa F841
+        original_name = type_alerts_fixture[0].name  # noqa F841
 
         # Get original data
         get_original = await authenticated_client.get(f"/alert_type/{alert_type_id}")
@@ -278,7 +278,7 @@ class TestAlertType:
     ) -> None:
         response = await client.get("/alert_type/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        
+
         # Também testar endpoint de criação sem autenticação
         payload = {
             "parameter_id": 1,
@@ -301,25 +301,25 @@ class TestAlertType:
             text("DELETE FROM type_alerts WHERE name = 'Alerta com Valor Extremo'")
         )
         await db_session.commit()
-        
+
         payload = {
             "parameter_id": parameters_fixture[0].id,
             "name": "Alerta com Valor Extremo",
-            "value": 99999,  # Valor muito alto
+            "value": 99999,
             "math_signal": ">",
             "status": "A",
         }
         response = await authenticated_client.post("/alert_type/", json=payload)
         assert response.status_code == status.HTTP_200_OK
-        
+
         # Verificar se o valor extremo foi salvo corretamente
         data = response.json().get("data", {})
         assert "id" in data
-        
+
         get_response = await authenticated_client.get(f"/alert_type/{data['id']}")
         assert get_response.status_code == status.HTTP_200_OK
-        assert get_response.json()["data"]["value"] == 99999
-        
+        assert get_response.json()["data"]["value"] == 99999 # noqa PLR2004
+
         # Limpar
         await db_session.execute(
             text("DELETE FROM type_alerts WHERE name = 'Alerta com Valor Extremo'")
@@ -339,7 +339,7 @@ class TestAlertType:
             f"/alert_type/?status={status_filter}&is_active={str(is_active).lower()}"
         )
         assert response.status_code == status.HTTP_200_OK
-        
+
         # Verificar se os resultados correspondem aos filtros
         data = response.json().get("data", [])
         if data:
@@ -355,22 +355,24 @@ class TestAlertType:
         db_session,
     ) -> None:
         alert_type_id = type_alerts_fixture[0].id
-        
+
         # Primeiro desativar o alerta
-        disable_response = await authenticated_client.patch(f"/alert_type/disables/{alert_type_id}")
+        disable_response = await authenticated_client.patch(
+            f"/alert_type/disables/{alert_type_id}"
+        )
         assert disable_response.status_code == status.HTTP_200_OK
-        
+
         # Verificar se foi desativado
         get_response = await authenticated_client.get(f"/alert_type/{alert_type_id}")
         assert get_response.json()["data"]["is_active"] is False
-        
+
         # Tentar ativar novamente (através de um update)
         payload = {"is_active": True}
         activate_response = await authenticated_client.patch(
             f"/alert_type/{alert_type_id}", json=payload
         )
         assert activate_response.status_code == status.HTTP_200_OK
-        
+
         # Verificar se foi reativado
         get_response = await authenticated_client.get(f"/alert_type/{alert_type_id}")
         assert get_response.json()["data"]["is_active"] is True
