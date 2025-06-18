@@ -98,3 +98,25 @@ class TestWeatherStations:
     ) -> None:
         response = await authenticated_client.get("/stations/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.asyncio
+    async def test_deactivate_nonexistent_weather_station(  # noqa: PLR6301
+        self,
+        authenticated_client: AsyncClient,
+    ) -> None:
+        """Testa a tentativa de desativar uma estação meteorológica que não existe."""
+        nonexistent_id = 999999
+
+        response = await authenticated_client.patch(
+            f"/stations/disable/{nonexistent_id}",
+            json={"is_active": False},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        response_data = response.json()
+        assert "detail" in response_data
+        assert (
+            "not found" in response_data["detail"].lower()
+            or "não encontrada" in response_data["detail"].lower()
+        )

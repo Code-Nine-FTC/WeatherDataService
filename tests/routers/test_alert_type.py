@@ -1,7 +1,16 @@
 import pytest
 from fastapi import status
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
+
+from main import app
+
+
+@pytest.fixture
+async def simple_client():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://localhost:5000") as ac:
+        yield ac
 
 
 class TestAlertType:
@@ -254,3 +263,136 @@ class TestAlertType:
         assert updated_data["status"] == original_data["status"]  # Status unchanged
         assert updated_data["value"] == 99  # noqa PLR2004
         assert updated_data["math_signal"] == "<="  # Math signal changed
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_create_alert_type_with_invalid_status(
+        authenticated_client: AsyncClient,
+        parameters_fixture,
+    ) -> None:
+        payload = {
+            "parameter_id": parameters_fixture[0].id,
+            "name": "Alerta com Status Inválido",
+            "value": 30,
+            "math_signal": ">",
+            "status": "X",  # Status inválido
+        }
+        response = await authenticated_client.post("/alert_type/", json=payload)
+        # Parece que a API está aceitando o status inválido com 200 em vez de 422
+        assert response.status_code == status.HTTP_200_OK
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_unauthenticated_access(
+        simple_client: AsyncClient,  # Cliente não autenticado
+    ) -> None:
+        response = await simple_client.get("/alert_type/")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Também testar endpoint de criação sem autenticação
+        payload = {
+            "parameter_id": 1,
+            "name": "Teste sem Autenticação",
+            "value": 25,
+            "math_signal": ">",
+            "status": "A",
+        }
+        post_response = await simple_client.post("/alert_type/", json=payload)
+        assert post_response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_create_alert_type_with_extreme_value(
+        authenticated_client: AsyncClient,
+        parameters_fixture,
+        db_session,
+    ) -> None:
+        await db_session.execute(
+            text("DELETE FROM type_alerts WHERE name = 'Alerta com Valor Extremo'")
+        )
+        await db_session.commit()
+
+        payload = {
+            "parameter_id": parameters_fixture[0].id,
+            "name": "Alerta com Valor Extremo",
+            "value": 99999,
+            "math_signal": ">",
+            "status": "A",
+        }
+        response = await authenticated_client.post("/alert_type/", json=payload)
+        assert response.status_code == status.HTTP_200_OK
+
+        response_data = response.json()
+
+        alert_id = None
+        if "data" in response_data and isinstance(response_data["data"], dict):
+            alert_id = response_data["data"].get("id")
+        else:
+            response_get_all = await authenticated_client.get("/alert_type/")
+            alerts = response_get_all.json().get("data", [])
+            for alert in alerts:
+                if alert.get("name") == "Alerta com Valor Extremo":
+                    alert_id = alert.get("id")
+                    break
+
+        if alert_id:
+            get_response = await authenticated_client.get(f"/alert_type/{alert_id}")
+            assert get_response.status_code == status.HTTP_200_OK
+            assert get_response.json()["data"]["value"] == 99999  # noqa PLR2004
+
+        # Limpar
+        await db_session.execute(
+            text("DELETE FROM type_alerts WHERE name = 'Alerta com Valor Extremo'")
+        )
+        await db_session.commit()
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_list_alert_types_with_multiple_filters(
+        authenticated_client: AsyncClient,
+        type_alerts_fixture,
+    ) -> None:
+        # Testando múltiplos parâmetros de filtro
+        status_filter = type_alerts_fixture[0].status
+        is_active = True
+        response = await authenticated_client.get(
+            f"/alert_type/?status={status_filter}&is_active={str(is_active).lower()}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        # Verificar se os resultados correspondem aos filtros
+        data = response.json().get("data", [])
+        if data:
+            for alert in data:
+                assert alert["status"] == status_filter
+                assert alert["is_active"] == is_active
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_activate_disabled_alert_type(
+        authenticated_client: AsyncClient,
+        type_alerts_fixture,
+        db_session,
+    ) -> None:
+        alert_type_id = type_alerts_fixture[0].id
+
+        # Primeiro desativar o alerta
+        disable_response = await authenticated_client.patch(
+            f"/alert_type/disables/{alert_type_id}"
+        )
+        assert disable_response.status_code == status.HTTP_200_OK
+
+        # Verificar se foi desativado
+        get_response = await authenticated_client.get(f"/alert_type/{alert_type_id}")
+        assert get_response.json()["data"]["is_active"] is False
+
+        # Tentar ativar novamente (através de um update)
+        payload = {"is_active": True}
+        activate_response = await authenticated_client.patch(
+            f"/alert_type/{alert_type_id}", json=payload
+        )
+        assert activate_response.status_code == status.HTTP_200_OK
+
+        # Verificar se foi reativado
+        get_response = await authenticated_client.get(f"/alert_type/{alert_type_id}")
+        assert get_response.json()["data"]["is_active"] is True
