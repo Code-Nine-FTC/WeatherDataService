@@ -204,7 +204,7 @@ class WeatherStationService:
         result = await self._session.execute(query)
         station = result.scalar()
         weatherstation = station.__dict__ if station else None
-        if weatherstation: 
+        if weatherstation:
             weatherstation.pop("_sa_instance_state", None)
         return WeatherStationResponseList(**weatherstation) if weatherstation else None
 

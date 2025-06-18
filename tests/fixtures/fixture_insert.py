@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 import pytest_asyncio
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import (
@@ -14,7 +15,6 @@ from app.core.models.db_model import (
     TypeAlert,
     WeatherStation,
 )
-from sqlalchemy import select
 
 
 @pytest_asyncio.fixture
@@ -62,7 +62,7 @@ async def weather_stations_fixture(
     db_session: AsyncSession,
 ) -> AsyncGenerator[list[WeatherStation], None]:
     stations = []
-    new_stations=  [
+    new_stations = [
         {
             "name": "Estação Meteorológica Central",
             "uid": "station-0001",
@@ -88,18 +88,16 @@ async def weather_stations_fixture(
             "is_active": False,
         },
     ]
-    
-    for station_data in new_stations:
+
+    for station_data in new_stations:  # noqa: PLW2901
         station = await db_session.execute(
-            select(WeatherStation).where(
-                WeatherStation.uid == station_data["uid"]
-            )
+            select(WeatherStation).where(WeatherStation.uid == station_data["uid"])
         )
         station = station.scalar_one_or_none()
-        if station :
+        if station:
             stations.append(station)
         else:
-            station_data = WeatherStation(**station_data)
+            station_data = WeatherStation(**station_data)  # noqa: PLW2901
             db_session.add(station_data)
             await db_session.flush()
             await db_session.commit()
@@ -169,22 +167,41 @@ async def measures_fixture(
     db_session: AsyncSession,
     parameters_fixture: list[Parameter],
 ) -> AsyncGenerator[list[Measures], None]:
-    measure1 = Measures(
-        parameter_id=parameters_fixture[0].id,
-        value=25.5,
-        measure_date=int(datetime.now(timezone.utc).timestamp()),
-    )
-    measure2 = Measures(
-        parameter_id=parameters_fixture[1].id,
-        value=60.0,
-        measure_date=int(datetime.now(timezone.utc).timestamp()),
-    )
-    db_session.add_all([measure1, measure2])
-    await db_session.commit()
-    yield [measure1, measure2]
-    await db_session.delete(measure1)
-    await db_session.delete(measure2)
-    await db_session.commit()
+    measures = []
+    new_measures = [
+        {
+            "parameter_id": parameters_fixture[0].id,
+            "value": 25.5,
+            "measure_date": int(datetime.now(timezone.utc).timestamp()),
+        },
+        {
+            "parameter_id": parameters_fixture[1].id,
+            "value": 60.0,
+            "measure_date": int(datetime.now(timezone.utc).timestamp()),
+        },
+    ]
+
+    for measure_data in new_measures:
+        measure = await db_session.execute(
+            select(Measures).where(
+                Measures.parameter_id == measure_data["parameter_id"],
+                Measures.measure_date == measure_data["measure_date"],
+            )
+        )
+        measure = measure.scalar_one_or_none()
+        if measure:
+            measures.append(measure)
+        else:
+            measure_obj = Measures(**measure_data)
+            db_session.add(measure_obj)
+            await db_session.flush()
+            await db_session.commit()
+            measures.append(measure_obj)
+
+    yield measures
+    for measure in measures:
+        await db_session.delete(measure)
+        await db_session.commit()
 
 
 @pytest_asyncio.fixture
