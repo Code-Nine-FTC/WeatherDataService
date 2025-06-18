@@ -37,7 +37,7 @@ class TestAlertType:
         db_session,
     ) -> None:
         payload = {
-            "parameter_id": 9999,  # Assuming this ID does not exist
+            "parameter_id": 9999,  # ID inexistente
             "name": "Alerta Inexistente",
             "value": 50,
             "math_signal": "<",
