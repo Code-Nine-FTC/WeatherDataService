@@ -93,9 +93,9 @@ class WeatherStationService:
             station_data.pop("parameter_types", None)
 
         if "address" in station_data:
-            current_address = station.address if station.address else {}
+            current_address = station.address if isinstance(station.address, dict) else {}
             updated_address = station_data.pop("address")
-            current_address.update(updated_address)  # type: ignore[arg-type, attr-defined]
+            current_address.update(updated_address)
             station_data["address"] = current_address
 
         if station_data:
@@ -166,7 +166,7 @@ class WeatherStationService:
             """
             SELECT
                 ws.id,
-                ws."name" AS name_station,
+                ws."name",
                 ws.uid,
                 ws.address,
                 ws.latitude,
@@ -203,14 +203,17 @@ class WeatherStationService:
         query = select(WeatherStation).where(WeatherStation.uid == uid)
         result = await self._session.execute(query)
         station = result.scalar()
-        return WeatherStationResponseList(**station.__dict__) if station else None
+        weatherstation = station.__dict__ if station else None
+        if weatherstation:
+            weatherstation.pop("_sa_instance_state", None)
+        return WeatherStationResponseList(**weatherstation) if weatherstation else None
 
     async def get_station_by_parameter(self, parmater_type_id: int) -> list[PameterByStation]:
         query = text(
             """
             select
                 p.id,
-                ws.name as name_station
+                ws.name
             from weather_stations ws
             join parameters p
                 on ws.id = p.station_id

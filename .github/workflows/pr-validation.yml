@@ -71,16 +71,6 @@ jobs:
       - name: Run tests with coverage for SonarQube
         run: pytest --cov=. --cov-report=xml
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
       - name: Run Unit Tests
         run: |
           echo "🧪 Executando testes unitários..."

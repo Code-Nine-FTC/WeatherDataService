@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from app.modules.basic_response import BasicResponse
 
 
-def test_basic_response_with_model():
+def test_basic_response_with_model() -> None:
     class TestModel(BaseModel):
         value: int
 
@@ -14,6 +14,6 @@ def test_basic_response_with_model():
     assert resp.data == data
 
 
-def test_basic_response_with_iterable():
+def test_basic_response_with_iterable() -> None:
     resp = BasicResponse(data=[1, 2, 3])
     assert isinstance(resp.data, Iterable)
