@@ -15,9 +15,6 @@ from app.core.models.db_model import (
 from app.dependency.database import Database
 from app.modules.security import PasswordManager, TokenManager
 from main import app
-from tests.fixtures.fixture_function import (  # noqa: F401
-    delete_all_stations,  # noqa: F401
-)
 from tests.fixtures.fixture_insert import (
     alerts_fixture,  # noqa: F401
     measures_fixture,  # noqa: F401

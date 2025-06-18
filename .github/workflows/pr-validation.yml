@@ -35,7 +35,7 @@ jobs:
           mypy .
 
       - name: Run tests with coverage for SonarQube
-        run: pytest --cov=. --cov-report=xml
+        run: pytest --cov --cov-report=xml
 
       - name: Run Unit Tests
         run: |

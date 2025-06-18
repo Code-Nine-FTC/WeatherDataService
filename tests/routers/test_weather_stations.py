@@ -29,7 +29,6 @@ class TestWeatherStations:
             "latitude": -10.1234,
             "longitude": -50.5678,
             "address": {"city": "Cidade Teste", "state": "Estado Teste", "country": "Brasil"},
-            "address": {"city": "Cidade Teste", "state": "Estado Teste", "country": "Brasil"},
             "parameter_types": [pt.id for pt in parameter_types_fixture],
         }
         response = await authenticated_client.post("/stations/", json=payload)
@@ -54,9 +53,6 @@ class TestWeatherStations:
             },
             {
                 "uid": "station-0001",
-            },
-            {
-                "is_active": True,
             },
         ],
     )
@@ -103,3 +99,24 @@ class TestWeatherStations:
         response = await authenticated_client.get("/stations/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @pytest.mark.asyncio
+    async def test_deactivate_nonexistent_weather_station(  # noqa: PLR6301
+        self,
+        authenticated_client: AsyncClient,
+    ) -> None:
+        """Testa a tentativa de desativar uma estação meteorológica que não existe."""
+        nonexistent_id = 999999
+
+        response = await authenticated_client.patch(
+            f"/stations/disable/{nonexistent_id}",
+            json={"is_active": False},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        response_data = response.json()
+        assert "detail" in response_data
+        assert (
+            "not found" in response_data["detail"].lower()
+            or "não encontrada" in response_data["detail"].lower()
+        )
