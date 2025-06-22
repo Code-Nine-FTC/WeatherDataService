@@ -46,9 +46,6 @@ jobs:
           echo "DATABASE_URL_TEST=${{secrets.DATABASE_URL_TEST}}" >> .env
           echo "TEST_ENV=True" >> .env
 
-      - name: Run tests with coverage for SonarQube
-        run: pytest --cov=. --cov-report=xml
-
       - name: Run Unit Tests
         run: |
           echo "🧪 Executando testes unitários..."
