@@ -15,8 +15,8 @@ async def simple_client():
 
 class TestAlertType:
     @pytest.mark.asyncio
-    @staticmethod
-    async def test_create_alert_type(
+    async def test_create_alert_type( 
+        self,
         authenticated_client: AsyncClient,
         parameters_fixture,
         db_session,
