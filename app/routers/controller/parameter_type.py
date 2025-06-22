@@ -41,8 +41,6 @@ class ParameterTypeController:
         try:
             parameter_types = await self._service.list_parameter_types(filters)
             return BasicResponse(data=parameter_types)
-        except HTTPException as e:
-            raise e
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -57,8 +55,6 @@ class ParameterTypeController:
         try:
             await self._service.update_parameter_type(parameter_type_id, data)
             return BasicResponse[None](data=None)
-        except HTTPException as e:
-            raise e
         except Exception as e:
             raise e
 
@@ -77,8 +73,6 @@ class ParameterTypeController:
         try:
             await self._service.delete_parameter_type(parameter_type_id)
             return BasicResponse[None](data=None)
-        except HTTPException as e:
-            raise e
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

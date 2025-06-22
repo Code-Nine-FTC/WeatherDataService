@@ -52,3 +52,30 @@ class TestAlerts:
         response = await authenticated_client.get("/alert/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "não encontrado" in response.json()["detail"]
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_mark_alert_as_read(
+        authenticated_client: AsyncClient, alerts_fixture
+    ) -> None:
+        alert_id = alerts_fixture[0].id
+        response = await authenticated_client.patch(f"/alert/{alert_id}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["data"] is None
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_filter_with_no_results(authenticated_client: AsyncClient) -> None:
+        response = await authenticated_client.get(
+            "/alert/all?station_name=Estação Inexistente"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["data"] == []
+
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_filter_with_invalid_param(authenticated_client: AsyncClient) -> None:
+        response = await authenticated_client.get("/alert/all?type_alert_name=1234")
+        assert response.status_code == status.HTTP_200_OK
+        # Pode retornar vazio ou lista com nomes parcialmente semelhantes
+        assert "data" in response.json()

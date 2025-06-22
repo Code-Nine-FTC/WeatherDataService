@@ -39,7 +39,7 @@ async def test_get_station_history(
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert "data" in data
-    assert len(data["data"]) == 0  # Lista vazia para ID inexistente
+    assert len(data["data"]) == 0
 
 
 @pytest.mark.asyncio
@@ -61,6 +61,13 @@ async def test_get_alert_type_distribution(
         f"/dashboard/alert-types?station_id={station_id}"
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.asyncio
+async def test_alert_types_with_invalid_station(authenticated_client: AsyncClient):
+    response = await authenticated_client.get("/dashboard/alert-types?station_id=999999")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["data"] == []
 
 
 @pytest.mark.asyncio
@@ -87,6 +94,13 @@ async def test_get_alert_counts(
 
 
 @pytest.mark.asyncio
+async def test_alert_counts_with_invalid_station(authenticated_client: AsyncClient):
+    response = await authenticated_client.get("/dashboard/alert-counts?station_id=999999")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["data"] == {"G": 0, "Y": 0, "R": 0}
+
+
+@pytest.mark.asyncio
 async def test_get_station_status(
     authenticated_client: AsyncClient, weather_stations_fixture: list[WeatherStation]
 ):
@@ -101,9 +115,7 @@ async def test_get_station_status(
 
 
 @pytest.mark.asyncio
-async def test_get_measures_status(
-    authenticated_client: AsyncClient, measures_fixture: list[Measures]
-):
+async def test_get_measures_status(authenticated_client: AsyncClient):
     """Teste para obter o status das medições."""
     response = await authenticated_client.get("/dashboard/measures-status")
     assert response.status_code == status.HTTP_200_OK
@@ -116,6 +128,15 @@ async def test_get_measures_status(
         first_item = data["data"][0]
         assert "label" in first_item
         assert "number" in first_item
+
+
+@pytest.mark.asyncio
+async def test_measures_status_structure(authenticated_client: AsyncClient):
+    response = await authenticated_client.get("/dashboard/measures-status")
+    assert response.status_code == status.HTTP_200_OK
+    for item in response.json()["data"]:
+        assert isinstance(item["label"], str)
+        assert isinstance(item["number"], int)
 
 
 @pytest.mark.asyncio
@@ -136,16 +157,14 @@ async def test_get_last_measures(
 
     response = await authenticated_client.get("/dashboard/last-measures/9999")
     assert response.status_code == status.HTTP_200_OK
-    data = response.json()
-    assert "data" in data
-    assert len(data["data"]) == 0
+    assert response.json()["data"] == []
 
 
 @pytest.mark.asyncio
 async def test_dashboard_public_access(
     simple_client: AsyncClient, weather_stations_fixture: list[WeatherStation]
 ):
-    """Teste para verificar que as rotas do dashboard são acessíveis sem autenticação"""
+    """Teste para verificar que as rotas do dashboard são acessíveis sem autenticação."""
     station_id = weather_stations_fixture[0].id
 
     endpoints = [
