@@ -5,7 +5,6 @@ from typing import AsyncGenerator
 
 import pytest_asyncio
 from sqlalchemy import select
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models.db_model import (
@@ -89,7 +88,7 @@ async def weather_stations_fixture(
             "is_active": False,
         },
     ]
-    
+
     for station_data in new_stations:
         station = await db_session.execute(
             select(WeatherStation).where(WeatherStation.uid == station_data["uid"])

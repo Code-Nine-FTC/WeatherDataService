@@ -102,4 +102,3 @@ class TestWeatherStations:
     ) -> None:
         response = await authenticated_client.get("/stations/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
-

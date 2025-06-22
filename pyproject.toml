@@ -1,7 +1,7 @@
 [tool.ruff]
 line-length = 95
 indent-width = 4
-extend-exclude = ['alembic']
+extend-exclude = ['alembic', 'tests']
 exclude = [
     ".bzr",
     ".direnv",
@@ -38,14 +38,14 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff.lint]
-exclude = ["alembic", "importacao.py"]
+exclude = ["alembic", "importacao.py", "tests"]
 preview = true
 select = ["E", "F", "W", "I", "PL", "PT", "R"]
 fixable = ["ALL"]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.format]
-exclude = ["alembic", "importacao.py"]
+exclude = ["alembic", "importacao.py", "tests"]
 preview = true
 quote-style = "double"
 indent-style = "space"

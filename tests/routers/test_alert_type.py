@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 class TestAlertType:
     @pytest.mark.asyncio
-    async def test_create_alert_type(
+    async def test_create_alert_type( 
         self,
         authenticated_client: AsyncClient,
         parameters_fixture,
