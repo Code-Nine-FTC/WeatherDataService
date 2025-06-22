@@ -33,6 +33,16 @@ jobs:
         run: |
           ruff check .
           mypy .
+          
+      - name: Create Env File
+        run: |
+          echo "Criando arquivo .env..."
+          echo "DATABASE_URL=${{secrets.DATABASE_URL}}" > .env
+          echo "SECRET_KEY=${{secrets.SECRET_KEY}}" >> .env
+          echo "ALGORITHM=${{secrets.ALGORITHM}}" >> .env
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}" >> .env
+          echo "DATABASE_URL_TEST=${{secrets.DATABASE_URL_TEST}}" >> .env
+          echo "TEST_ENV=True" >> .env
 
       - name: Run tests with coverage for SonarQube
         run: pytest --cov=. --cov-report=xml
