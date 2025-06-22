@@ -27,7 +27,7 @@ class AlertService:
     async def _buscar_alertas_com_filtros(
         self, filters: AlertFilterSchema | None = None
     ) -> list[AlertResponse]:
-        query = text(
+        query_sql = text(  # <-- nome da variável antes era `query`, agora é `query_sql`
             f"""
             SELECT
                 a.id,
@@ -56,11 +56,11 @@ class AlertService:
             """
         )
         if filters and filters.type_alert_name:
-            query = query.bindparams(type_alert_name=f"%{filters.type_alert_name}%")
+            query_sql = query_sql.bindparams(type_alert_name=f"%{filters.type_alert_name}%")
         if filters and filters.station_name:
-            query = query.bindparams(station_name=f"%{filters.station_name}%")
+            query_sql = query_sql.bindparams(station_name=f"%{filters.station_name}%")
 
-        result = await self._session.execute(query)
+        result = await self._session.execute(query_sql)
         alerts = result.fetchall()
         return [AlertResponse(**alert._asdict()) for alert in alerts]
 
