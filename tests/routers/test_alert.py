@@ -29,7 +29,7 @@ class TestAlerts:
     async def test_filter_by_type_alert_name(
         authenticated_client: AsyncClient, alerts_fixture
     ) -> None:
-        response = await authenticated_client.get("/alert/all?type_alert_name=Temperatura")
+        response = await authenticated_client.get('/alert/all?type_alert_name=Temperatura')  # Mudança: aspas simples
         assert response.status_code == status.HTTP_200_OK
         data = response.json()["data"]
         for alert in data:
@@ -77,5 +77,4 @@ class TestAlerts:
     async def test_filter_with_invalid_param(authenticated_client: AsyncClient) -> None:
         response = await authenticated_client.get("/alert/all?type_alert_name=1234")
         assert response.status_code == status.HTTP_200_OK
-        # Pode retornar vazio ou lista com nomes parcialmente semelhantes
-        assert "data" in response.json()
+        assert "data" in response.json()
