@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "sleep 5 && alembic revision --autogenerate -m 'Initial migration' && alembic upgrade head"
+    command: sh -c "sleep 10 & alembic init && sleep 5 && alembic revision --autogenerate -m 'Initial migration' && alembic upgrade head"
     environment:
       - TEST_ENV=True
       - DATABASE_URL_TEST=postgresql+asyncpg://teste:teste@test-db:5432/tecsus_teste
