@@ -77,4 +77,4 @@ class TestAlerts:
     async def test_filter_with_invalid_param(authenticated_client: AsyncClient) -> None:
         response = await authenticated_client.get("/alert/all?type_alert_name=1234")
         assert response.status_code == status.HTTP_200_OK
-        assert "data" in response.json()
+        assert "data" in response.json()
