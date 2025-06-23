@@ -54,7 +54,7 @@ jobs:
       - name: Run Integration Tests
         run: |
           echo "Iniciando o container de testes..."
-          docker compose up --abort-on-container-exit test-runner
+          docker compose up --abort-on-container-exit
           
           echo "📊 Coletando relatório de cobertura..."
           # O relatório XML de cobertura estará disponível para o SonarQube ou outras ferramentas
