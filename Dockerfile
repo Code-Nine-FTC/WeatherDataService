@@ -5,7 +5,11 @@ WORKDIR /app
 COPY . .
 
 RUN apk add gcc python3-dev musl-dev linux-headers
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt 
-RUN alembic upgrade head
+
+#Para Garantir que o Alembic funcione corretamente
+RUN mkdir -p /app/alembic/versions
+
 
 CMD ["uvicorn", "main:app", "--reload", "--port", "8000", "--host", "0.0.0.0", "--workers", "4"]

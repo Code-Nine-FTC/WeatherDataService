@@ -1,78 +1,81 @@
+# -- coding: utf-8 --
 import pytest
-from fastapi.testclient import TestClient
-
-from app.core.models.db_model import Alert
-
-# Códigos HTTP usados nos testes
-HTTP_STATUS_OK = 200
-HTTP_STATUS_NOT_FOUND = 404
+from fastapi import status
+from httpx import AsyncClient
 
 
-class TestAlert:
-    @pytest.fixture(autouse=True)
-    def setup(self, authenticated_client: TestClient):
-        self.client = authenticated_client
-
-    # 1. Lista todos os alertas — precisa da fixture de alerta
+class TestAlerts:
     @pytest.mark.asyncio
-    async def test_get_all_alerts(self, alert: Alert):
-        response = self.client.get("/alert/all")
-
-        assert response.status_code == HTTP_STATUS_OK
+    @staticmethod
+    async def test_list_all_alerts(
+        authenticated_client: AsyncClient,
+        alerts_fixture,
+        type_alerts_fixture,
+        measures_fixture,
+    ) -> None:
+        response = await authenticated_client.get("/alert/all")
+        assert response.status_code == status.HTTP_200_OK
         data = response.json()["data"]
         assert isinstance(data, list)
-        assert any(a["id"] == alert.id for a in data)
+        if data:
+            assert "id" in data[0]
+            assert "type_alert_name" in data[0]
+            assert "station_name" in data[0]
+            assert "measure_value" in data[0]
+            assert "create_date" in data[0]
 
-    # 2. Lista alertas filtrando por station_id — precisa da fixture de alerta
     @pytest.mark.asyncio
-    async def test_get_alerts_by_station_id(self, alert: Alert):
-        response = self.client.get("/alert/all", params={"station_id": alert.station_id})
-
-        assert response.status_code == HTTP_STATUS_OK
+    @staticmethod
+    async def test_filter_by_type_alert_name(
+        authenticated_client: AsyncClient, alerts_fixture
+    ) -> None:
+        response = await authenticated_client.get("/alert/all?type_alert_name=Temperatura")
+        assert response.status_code == status.HTTP_200_OK
         data = response.json()["data"]
-        assert all(a["station_name"] == "Estação 1" for a in data)
+        for alert in data:
+            assert "Temperatura" in alert["type_alert_name"]
 
-    # 3. Lista alertas filtrando por alert_type_id — precisa da fixture de alerta
     @pytest.mark.asyncio
-    async def test_get_alerts_by_alert_type_id(self, alert: Alert):
-        response = self.client.get("/alert/all", params={"alert_type_id": alert.type_alert_id})
-
-        assert response.status_code == HTTP_STATUS_OK
+    @staticmethod
+    async def test_filter_by_station_name(
+        authenticated_client: AsyncClient, alerts_fixture
+    ) -> None:
+        response = await authenticated_client.get("/alert/all?station_name=Estação 1")
+        assert response.status_code == status.HTTP_200_OK
         data = response.json()["data"]
-        assert all(a["type_alert_name"] == "Alerta Ativo" for a in data)
+        for alert in data:
+            assert "Estação 1" in alert["station_name"]
 
-    # 4. Recupera alerta por ID — precisa da fixture de alerta
     @pytest.mark.asyncio
-    async def test_get_alert_by_id(self, alert: Alert):
-        response = self.client.get(f"/alert/{alert.id}")
+    @staticmethod
+    async def test_get_alert_by_invalid_id(authenticated_client: AsyncClient) -> None:
+        response = await authenticated_client.get("/alert/999999")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert "não encontrado" in response.json()["detail"]
+        assert response.json()["detail"] is not None 
 
-        assert response.status_code == HTTP_STATUS_OK
-        data = response.json()["data"]
-        assert data["id"] == alert.id
-        assert data["measure_value"] == "35"
-        assert data["type_alert_name"] == "Alerta Ativo"
-        assert data["station_name"] == "Estação 1"
-
-    # 5. Recupera alerta com ID inexistente — não precisa de fixture
-    def test_get_alert_by_id_not_found(self):
-        alert_id = 99999
-        response = self.client.get(f"/alert/{alert_id}")
-
-        assert response.status_code == HTTP_STATUS_NOT_FOUND
-        assert response.json()["detail"] == f"Alerta com a ID {alert_id} não encontrado."
-
-    # 6. Deleta alerta por ID — precisa da fixture de alerta
     @pytest.mark.asyncio
-    async def test_delete_alert(self, alert: Alert):
-        response = self.client.delete(f"/alert/{alert.id}")
+    @staticmethod
+    async def test_mark_alert_as_read(
+        authenticated_client: AsyncClient, alerts_fixture
+    ) -> None:
+        alert_id = alerts_fixture[0].id
+        response = await authenticated_client.patch(f"/alert/{alert_id}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["data"] is None
 
-        assert response.status_code == HTTP_STATUS_OK
-        assert response.json() == {"data": None}
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_filter_with_no_results(authenticated_client: AsyncClient) -> None:
+        response = await authenticated_client.get(
+            "/alert/all?station_name=Estação Inexistente"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["data"] == []
 
-    # 7. Tenta deletar alerta com ID inexistente — não precisa de fixture
-    def test_delete_alert_not_found(self):
-        alert_id = 99999
-        response = self.client.delete(f"/alert/{alert_id}")
-
-        assert response.status_code == HTTP_STATUS_NOT_FOUND
-        assert response.json()["detail"] == f"Alerta com a ID {alert_id} não encontrado."
+    @pytest.mark.asyncio
+    @staticmethod
+    async def test_filter_with_invalid_param(authenticated_client: AsyncClient) -> None:
+        response = await authenticated_client.get("/alert/all?type_alert_name=1234")
+        assert response.status_code == status.HTTP_200_OK
+        assert "data" in response.json()

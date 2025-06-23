@@ -1,0 +1,42 @@
+services:
+  test-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=teste
+      - POSTGRES_PASSWORD=teste
+      - POSTGRES_DB=tecsus_teste
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teste -d tecsus_teste"]
+      interval: 5s
+      timeout: 5s
+
+  test-migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c "
+        mkdir -p /app/alembic/versions &&
+        sleep 10 &&
+        echo 'Executando migrações...' &&
+        alembic revision --autogenerate -m 'Initial migration' &&
+        alembic upgrade head &&
+        echo 'MIGRATIONS_COMPLETE' > /app/migrations_done &&
+        echo '✅ Migrações concluídas com sucesso' &&
+        echo '🔍 Esperando migrations completarem...' &&
+        sleep 5 &&
+        echo '🔗 Executando testes...' &&
+        pytest --cov=. --cov-report=xml
+      "
+    environment:
+      - TEST_ENV=True
+      - DATABASE_URL_TEST=postgresql+asyncpg://teste:teste@test-db:5432/tecsus_teste
+    depends_on:
+      test-db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+

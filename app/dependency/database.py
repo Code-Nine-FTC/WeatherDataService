@@ -9,15 +9,14 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
-from sqlalchemy.pool import NullPool
 
-from app.config.settings import Settings
+from app.config.settings import settings
 from app.modules.common import Singleton
 
 
 class Database(metaclass=Singleton):
     def __init__(self) -> None:
-        self._engine: AsyncEngine = self._create_engine()  # type: ignore[assignment]
+        self._engine: AsyncEngine = self._create_engine()
         self._session_maker: async_sessionmaker[AsyncSession] = self._create_session_factory()
 
     async def ping(self) -> None:
@@ -26,16 +25,12 @@ class Database(metaclass=Singleton):
 
     @property
     def session(self) -> AsyncSession:
-        return self._session_maker()  # type: ignore[no-any-return,operator, unused-ignore] # noqa
+        return self._session_maker()
 
-    def _create_engine(self) -> async_sessionmaker[AsyncSession]:  # noqa: PLR6301
+    @staticmethod
+    def _create_engine() -> AsyncEngine:
         return create_async_engine(
-            Settings().DATABASE_URL,  # type: ignore[return-value, call-arg]
-            poolclass=NullPool if Settings().TEST_ENV else None,  # type: ignore[return-value, call-arg]
-            pool_size=150,  # 150 para 200 conexões simultâneas
-            max_overflow=50,  # 50 para 200 conexões simultâneas
-            pool_timeout=30,
-            pool_recycle=1800,
+            settings.DATABASE_URL,
         )
 
     def _create_session_factory(self) -> async_sessionmaker[AsyncSession]:

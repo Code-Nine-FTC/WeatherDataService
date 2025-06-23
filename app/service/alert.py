@@ -27,7 +27,7 @@ class AlertService:
     async def _buscar_alertas_com_filtros(
         self, filters: AlertFilterSchema | None = None
     ) -> list[AlertResponse]:
-        query = text(
+        query_sql = text(
             f"""
             SELECT
                 a.id,
@@ -47,20 +47,26 @@ class AlertService:
             WHERE 1=1
             AND ta.is_active = true
             AND a.is_read = false
-            {"AND ta.name ILIKE :type_alert_name" if filters and filters.type_alert_name else ""}
+            {
+                "AND ta.name ILIKE :type_alert_name"
+                if filters and filters.type_alert_name
+                else ""
+            }
             {"AND ws.name ILIKE :station_name" if filters and filters.station_name else ""}
             """
         )
         if filters and filters.type_alert_name:
-            query = query.bindparams(type_alert_name=f"%{filters.type_alert_name}%")
+            query_sql = query_sql.bindparams(type_alert_name=f"%{filters.type_alert_name}%")
         if filters and filters.station_name:
-            query = query.bindparams(station_name=f"%{filters.station_name}%")
+            query_sql = query_sql.bindparams(station_name=f"%{filters.station_name}%")
 
-        result = await self._session.execute(query)
+        result = await self._session.execute(query_sql)
         alerts = result.fetchall()
         return [AlertResponse(**alert._asdict()) for alert in alerts]
 
-    async def get_alert_by_id(self, id_alert: int) -> AlertResponse:
+    async def get_alert_by_id(
+        self, alert_id: int
+    ) -> AlertResponse:  # Alterado: id_alert -> alert_id
         query = text(
             """
             select
@@ -81,12 +87,12 @@ class AlertService:
             where 1=1
             and a.id = :id_alert
             """
-        ).bindparams(id_alert=id_alert)
+        ).bindparams(id_alert=alert_id)
         result = await self._session.execute(query)
         alert = result.fetchone()
         if alert is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Alerta com a ID {id_alert} não encontrado.",
+                detail=f"Alerta com a ID {alert_id} não encontrado.",
             )
         return AlertResponse(**alert._asdict())
