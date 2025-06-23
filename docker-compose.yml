@@ -1,4 +1,3 @@
-
 services:
   test-db:
     image: postgres:16
@@ -12,9 +11,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U teste -d tecsus_teste"]
       interval: 5s
       timeout: 5s
-      retries: 5
 
-test-migrations:
+  test-migrations:
     build:
       context: .
       dockerfile: Dockerfile
