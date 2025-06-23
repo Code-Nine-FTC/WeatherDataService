@@ -40,11 +40,8 @@ services:
       dockerfile: Dockerfile
     command: >
       sh -c "
-        echo '🔍 Esperando migrações completarem...' &&
-        until [ -f /app/migrations_done ]; do
-          echo 'Aguardando conclusão das migrações...'
-          sleep 2
-        done &&
+        echo '🔍 Esperando migrations completarem...' &&
+        sleep 5 &&
         echo '🔗 Executando testes...' &&
         pytest --cov=. --cov-report=xml
       "
