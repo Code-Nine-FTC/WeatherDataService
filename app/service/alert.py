@@ -64,7 +64,9 @@ class AlertService:
         alerts = result.fetchall()
         return [AlertResponse(**alert._asdict()) for alert in alerts]
 
-    async def get_alert_by_id(self, alert_id: int) -> AlertResponse:  # Alterado: id_alert -> alert_id
+    async def get_alert_by_id(
+        self, alert_id: int
+    ) -> AlertResponse:  # Alterado: id_alert -> alert_id
         query = text(
             """
             select
@@ -94,4 +96,3 @@ class AlertService:
                 detail=f"Alerta com a ID {alert_id} não encontrado.",
             )
         return AlertResponse(**alert._asdict())
-    
