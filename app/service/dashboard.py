@@ -11,13 +11,10 @@ class DashboardService:
         self._session = session
 
     async def get_station_history(
-        self,
-        station_id: int,
-        start_date: str | None = None,
-        end_date: str | None = None
+        self, station_id: int, start_date: str | None = None, end_date: str | None = None
     ) -> Sequence[Row[Any]]:
-
-        base_query = ["""
+        base_query = [
+            """
             SELECT
                 m.value,
                 m.measure_date,
@@ -27,7 +24,8 @@ class DashboardService:
             FROM measures m
             JOIN parameters p ON m.parameter_id = p.id
             JOIN parameter_types pt ON p.parameter_type_id = pt.id
-        """]
+        """
+        ]
 
         where_conditions = []
         final_params = {"station_id": station_id}
@@ -40,7 +38,7 @@ class DashboardService:
 
         end_epoch = self._parse_date_to_epoch(end_date)
         if end_epoch is not None:
-            if end_date and len(end_date) == 10:
+            if end_date and len(end_date) == 10:  # noqa PLR2004
                 try:
                     datetime.strptime(end_date, "%Y-%m-%d")
                     end_epoch += (24 * 60 * 60) - 1
@@ -61,7 +59,9 @@ class DashboardService:
         result = await self._session.execute(query, final_params)
         return result.fetchall()
 
-    async def get_alert_type_distribution(self, station_id: int | None = None) -> Sequence[Row:[Any]]:
+    async def get_alert_type_distribution(
+        self, station_id: int | None = None
+    ) -> Sequence[Row[Any]]:
         params = {}
         sql_query = """
             SELECT
@@ -96,7 +96,6 @@ class DashboardService:
         return result.fetchall()
 
     async def get_alert_counts(self, station_id: int | None) -> dict[str, int]:
-
         base_params = {}
 
         station_join_clause = ""
@@ -132,7 +131,7 @@ class DashboardService:
         counts = {}
         for key, query in queries.items():
             result = await self._session.execute(text(query), base_params)
-            counts[key] = result.scalar()
+            counts[key] = int(result.scalar() or 0)
         return counts
 
     async def get_station_status(self) -> dict[str, int]:
@@ -143,11 +142,11 @@ class DashboardService:
         active_result = await self._session.execute(text(active_query))
 
         return {
-            "total": total_result.scalar() or 0,
-            "active": active_result.scalar() or 0,
+            "total": int(total_result.scalar() or 0),
+            "active": int(active_result.scalar() or 0),
         }
 
-    async def get_measures_status(self) -> list[Row[Any]]:
+    async def get_measures_status(self) -> Sequence[Row[Any]]:
         query = text("""
             SELECT
                 pt.name AS label,
@@ -182,7 +181,7 @@ class DashboardService:
         result = await self._session.execute(query, {"station_id": station_id})
         return list(result.fetchall())
 
-    def _parse_date_to_epoch(self, date_str: str | None) -> int | None:
+    def _parse_date_to_epoch(self, date_str: str | None) -> int | None:  # noqa PLR6301
         if date_str is None:
             return None
         try:

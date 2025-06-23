@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +17,5 @@ class AuthController:
     ) -> Token:
         try:
             return await self._service_auth.login(form_data)
-        except HTTPException as e:
-            raise e
         except Exception as e:
             raise e
