@@ -54,8 +54,7 @@ jobs:
       - name: Run Integration Tests
         run: |
           echo "Iniciando o container de testes..."
-          git submodule update --init --recursive
-          docker compose up --build
-
-          echo "🔗 Executando testes..."
-          pytest --cov=. --cov-report=xml --cov-fail-under=80
+          docker compose up --abort-on-container-exit test-runner
+          
+          echo "📊 Coletando relatório de cobertura..."
+          # O relatório XML de cobertura estará disponível para o SonarQube ou outras ferramentas

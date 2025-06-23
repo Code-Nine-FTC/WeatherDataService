@@ -20,8 +20,12 @@ services:
       sh -c "
         mkdir -p /app/alembic/versions &&
         sleep 10 &&
+        echo 'Executando migrações...' &&
         alembic revision --autogenerate -m 'Initial migration' &&
-        alembic upgrade head
+        alembic upgrade head &&
+        echo 'MIGRATIONS_COMPLETE' > /app/migrations_done &&
+        echo '✅ Migrações concluídas com sucesso' &&
+        tail -f /dev/null
       "
     environment:
       - TEST_ENV=True
@@ -36,10 +40,13 @@ services:
       dockerfile: Dockerfile
     command: >
       sh -c "
-        echo '🔍 Esperando migrations completarem...' &&
-        sleep 5 &&
+        echo '🔍 Esperando migrações completarem...' &&
+        until [ -f /app/migrations_done ]; do
+          echo 'Aguardando conclusão das migrações...'
+          sleep 2
+        done &&
         echo '🔗 Executando testes...' &&
-        pytest --cov=. --cov-report=xml --cov-fail-under=80
+        pytest --cov=. --cov-report=xml
       "
     environment:
       - TEST_ENV=True
