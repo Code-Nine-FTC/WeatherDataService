@@ -30,3 +30,22 @@ services:
       test-db:
         condition: service_healthy
 
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c "
+        echo '🔍 Esperando migrations completarem...' &&
+        sleep 5 &&
+        echo '🔗 Executando testes...' &&
+        pytest --cov=. --cov-report=xml --cov-fail-under=80
+      "
+    environment:
+      - TEST_ENV=True
+      - DATABASE_URL_TEST=postgresql+asyncpg://teste:teste@test-db:5432/tecsus_teste
+    depends_on:
+      - test-migrations
+    volumes:
+      - .:/app
+
