@@ -29,8 +29,20 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      - name: Run tests with coverage
-        run: pytest --cov --cov-report=xml
+      - name: Create Env File
+        run: |
+          echo "Criando arquivo .env..."
+          echo "DATABASE_URL=${{secrets.DATABASE_URL}}" > .env
+          echo "SECRET_KEY=${{secrets.SECRET_KEY}}" >> .env
+          echo "ALGORITHM=${{secrets.ALGORITHM}}" >> .env
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}" >> .env
+          echo "DATABASE_URL_TEST=${{secrets.DATABASE_URL_TEST}}" >> .env
+          echo "TEST_ENV=True" >> .env
+
+      - name: Run Integration Tests
+        run: |
+          echo "Iniciando o container de testes..."
+          docker compose up --abort-on-container-exit
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
