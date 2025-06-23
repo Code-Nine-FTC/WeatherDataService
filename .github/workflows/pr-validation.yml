@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "Iniciando o container de testes..."
           git submodule update --init --recursive
-          docker compose up --build
+          docker compose up
           
           echo "🔗 Executando testes..."
           pytest --cov=. --cov-report=xml --cov-fail-under=80
