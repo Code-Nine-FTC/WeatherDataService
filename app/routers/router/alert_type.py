@@ -42,9 +42,6 @@ async def get_alert_type(
     return await AlertTypeController(session).get_alert_type(alert_type_id)
 
 
-dependencies = ([Depends(AuthManager.has_authorization)],)
-
-
 @router.patch("/{alert_type_id}")
 async def update_alert_type(
     alert_type_id: int,
@@ -52,9 +49,6 @@ async def update_alert_type(
     session: AsyncSession = Depends(SessionConnection.session),
 ) -> BasicResponse[None]:
     return await AlertTypeController(session).update_alert_type(alert_type_id, alert_type_data)
-
-
-dependencies = ([Depends(AuthManager.has_authorization)],)
 
 
 @router.patch("/disables/{alert_type_id}")
