@@ -54,7 +54,7 @@ jobs:
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action"
             git add coverage.xml
-            git commit -m "Atualiza relatório de cobertura [skip ci]" || echo "Nenhuma alteração para commit"
+            git commit -m "docs: Atualiza relatório de cobertura [skip ci]" || echo "Nenhuma alteração para commit"
             git push
           else
             echo "Arquivo coverage.xml não foi gerado"
