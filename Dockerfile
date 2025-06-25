@@ -10,7 +10,4 @@ RUN pip install -r requirements.txt
 
 RUN mkdir -p /app/alembic/versions
 
-RUN chmod -R 777 /app
-
-
 CMD ["uvicorn", "main:app", "--reload", "--port", "8000", "--host", "0.0.0.0", "--workers", "4"]
