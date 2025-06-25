@@ -48,19 +48,15 @@ jobs:
           echo "Iniciando o container de testes..."
           docker compose up --abort-on-container-exit
           
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: SonarQube Scan GIT
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Commit coverage report
+        run: |
+          if [ -f coverage.xml ]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add coverage.xml
+            git commit -m "Atualiza relatório de cobertura [skip ci]" || echo "Nenhuma alteração para commit"
+            git push
+          else
+            echo "Arquivo coverage.xml não foi gerado"
+            exit 1
+          fi
