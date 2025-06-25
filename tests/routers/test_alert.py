@@ -52,7 +52,6 @@ class TestAlerts:
         response = await authenticated_client.get("/alert/999999")
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "não encontrado" in response.json()["detail"]
-        assert response.json()["detail"] is not None 
 
     @pytest.mark.asyncio
     @staticmethod
