@@ -21,8 +21,7 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          mkdir /home/ubuntu/app
-          cd /home/ubuntu/app
+          cd WeatherDataService
           git pull origin main
 
           echo "Parando e removendo containers e imagens antigas"
@@ -32,5 +31,5 @@ jobs:
           docker system prune -f || true
 
           echo "Construindo nova imagem e rodando novo container"
-          docker build -t weather_data_service:${{ github.sha }} .
+          docker build -t weather_data_service:${{ github.sha }} -t weather_data_service:latest .
           docker run -d --name weather_data_service_container -p 8000:8000 --restart unless-stopped weather_data_service
