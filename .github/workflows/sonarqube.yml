@@ -14,14 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          submodules: 'recursive'
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12' 
+          
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Install dependencies
         run: |
@@ -29,15 +33,30 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      - name: Run tests with coverage
-        run: pytest --cov --cov-report=xml
+      - name: Create Env File
+        run: |
+          echo "Criando arquivo .env..."
+          echo "DATABASE_URL=${{secrets.DATABASE_URL}}" > .env
+          echo "SECRET_KEY=${{secrets.SECRET_KEY}}" >> .env
+          echo "ALGORITHM=${{secrets.ALGORITHM}}" >> .env
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}" >> .env
+          echo "DATABASE_URL_TEST=${{secrets.DATABASE_URL_TEST}}" >> .env
+          echo "TEST_ENV=True" >> .env
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Run Integration Tests
+        run: |
+          echo "Iniciando o container de testes..."
+          docker compose up --abort-on-container-exit
+          
+      - name: Commit coverage report
+        run: |
+          if [ -f coverage.xml ]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add coverage.xml
+            git commit -m "Atualiza relatório de cobertura [skip ci]" || echo "Nenhuma alteração para commit"
+            git push
+          else
+            echo "Arquivo coverage.xml não foi gerado"
+            exit 1
+          fi
