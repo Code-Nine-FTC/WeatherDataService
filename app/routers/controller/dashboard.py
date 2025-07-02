@@ -86,5 +86,5 @@ class DashboardController:
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Erro ao buscar últimas medidas: {str(e)}",
+                detail=f"Erro ao buscar últimas medidas dashboard: {str(e)}",
             )
