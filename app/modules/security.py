@@ -12,10 +12,10 @@ class PasswordManager:
         self.__pwd_context = PasswordHash.recommended()
 
     def password_hash(self, password: str) -> str:
-        return self.__pwd_context.hash(password)
+        return self.__pwd_context.hash(password)  # type: ignore[no-any-return]
 
     def verify_password(self, password: str, hashed: str) -> bool:
-        return self.__pwd_context.verify(password, hashed)
+        return self.__pwd_context.verify(password, hashed)  # type: ignore[no-any-return]
 
 
 class TokenManager:
@@ -30,4 +30,4 @@ class TokenManager:
             minutes=self.__access_token_expire_minutes
         )
         to_encode = {"sub": str(data.id), "exp": expire}
-        return jwt.encode(to_encode, self.__secret_key, algorithm=self.__algorithm)
+        return jwt.encode(to_encode, self.__secret_key, algorithm=self.__algorithm)  # type: ignore[no-any-return]
