@@ -44,6 +44,7 @@ class WeatherStationCreate(BaseModel):
     latitude: float
     longitude: float
     address: StationAddress
+    description: str | None = None
     parameter_types: list[int] = []
 
 
@@ -53,6 +54,7 @@ class WeatherStationUpdate(BaseModel):
     address: StationAdressUpdate | None = None
     latitude: float | None = None
     longitude: float | None = None
+    description: str | None = None
     last_update: datetime | None = None
     is_active: bool | None = None
     parameter_types: list[int] | None = None
@@ -71,6 +73,7 @@ class WeatherStationResponse(BaseModel):
     address: StationAddress | None = None
     latitude: float
     longitude: float
+    description: str | None = None
     create_date: datetime
     is_active: bool
     parameters: list[dict[str, Any]] | None = []
@@ -92,6 +95,7 @@ class WeatherStationResponseList(BaseModel):
     address: StationAddress | None = None
     latitude: float
     longitude: float
+    description: str | None = None
     create_date: int
     is_active: bool
     parameters: list[dict[str, Any]] | None = []
