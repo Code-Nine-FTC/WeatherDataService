@@ -16,6 +16,7 @@ class AlertResponse(BaseModel):
     type_alert_name: str
     station_name: str
     create_date: datetime
+    severity: str | None = None
 
     @field_validator("create_date", mode="before")
     def parse_create_date(cls, value: int | datetime) -> datetime:
